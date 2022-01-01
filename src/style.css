@@ -1,8 +1,58 @@
+:root {
+  --canvas-width: 94vw;
+  --canvas-height: calc(var(--canvas-width) * 625e-3);
+}
+
+body {
+  box-sizing: border-box;
+}
+
+.container {
+  display: grid;
+
+  /* grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(auto, minmax(min-content 1fr)); */
+  grid-template:
+    "...... hello readout" min-content
+    "canvas canvas canvas" 1fr
+    / 1fr 1fr 1fr;
+  place-items: center;
+  row-gap: 1rem;
+}
+
+/* .container > * {
+  outline: pink dotted 3px;
+} */
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+
+  /* margin-top: 60px; */
+  grid-area: hello;
+}
+
+#readout-div {
+  height: min-content;
+  width: max-content;
+  grid-area: readout;
+}
+
+#readout-div p {
+  margin: 0.2em auto;
+}
+
+#readout::after {
+  content: "hello";
+}
+
+#canvas {
+  width: var(--canvas-width);
+  height: var(--canvas-height);
+  border: 1px solid black;
+  aspect-ratio: 16/10;
+  grid-area: canvas;
 }
