@@ -1,0 +1,4 @@
+
+canvas: HTMLCanvasElement
+
+export { }

@@ -1,12 +1,17 @@
-import { CanvasAndWindow } from "../types/types"
+import { CanvasAndWindow } from "../types/types";
 
 const dpi = window.devicePixelRatio
-function dimFix(el: HTMLCanvasElement): void {
-    ['height', 'width'].forEach(prop => {
-        const propVal = parseFloat(getComputedStyle(el).getPropertyValue(prop)) * dpi
-        el.setAttribute(prop, propVal.toString())
-    })
+function dimFix(canvas: HTMLCanvasElement): void {
+    const [cssHeight, cssWidth] = ['height', 'width'].map(
+        prop => parseFloat(getComputedStyle(canvas).getPropertyValue(prop)) * dpi
+    )
+    canvas.height = cssHeight; canvas.width = cssWidth
+    // ['height', 'width'].forEach(prop => {
+    //     const propVal = parseFloat(getComputedStyle(el).getPropertyValue(prop)) * dpi
+    //     el.setAttribute(prop, propVal.toString())
+    // })
 }
+
 function fixCanvas({ canvas, window }: CanvasAndWindow) {
     dimFix(canvas)
     window.addEventListener('resize', () => {
@@ -16,11 +21,11 @@ function fixCanvas({ canvas, window }: CanvasAndWindow) {
 }
 
 function attachInputListeners({ canvas, window }: CanvasAndWindow) {
-    let downTime: number
+    let keyDownTime: number
 
     function logKey(ev: KeyboardEvent) {
-        if (ev.type === 'keydown') downTime = Date.now()
-        const timeHeld = ev.type === 'keyup' ? Date.now() - downTime : Infinity
+        if (ev.type === 'keydown') keyDownTime = Date.now()
+        const timeHeld = ev.type === 'keyup' ? Date.now() - keyDownTime : Infinity
         if (timeHeld > 60) console.log(`${ev.key}, ${ev.type}`)
     }
 
@@ -38,5 +43,6 @@ function attachInputListeners({ canvas, window }: CanvasAndWindow) {
 export function init(propObj: CanvasAndWindow) {
     fixCanvas(propObj)
     attachInputListeners(propObj)
+
 }
 
