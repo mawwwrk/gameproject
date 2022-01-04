@@ -7,7 +7,7 @@ body {
   box-sizing: border-box;
 }
 
-.container {
+.grid-container {
   display: grid;
 
   /* grid-template-columns: repeat(3, 1fr);
@@ -20,9 +20,13 @@ body {
   row-gap: 1rem;
 }
 
-/* .container > * {
-  outline: pink dotted 3px;
-} */
+footer {
+  margin: 0.5em;
+}
+
+.container > * {
+  display: flex;
+}
 
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -41,18 +45,19 @@ body {
   grid-area: readout;
 }
 
-#readout-div p {
-  margin: 0.2em auto;
+footer {
+  grid-area: debug;
 }
 
-#readout::after {
-  content: "hello";
+div p {
+  font-size: smaller;
+  margin: 0.2em auto;
 }
 
 #canvas {
   width: var(--canvas-width);
   height: var(--canvas-height);
-  border: 1px solid black;
+  outline: 1px solid black;
   aspect-ratio: 16/10;
   grid-area: canvas;
 }
