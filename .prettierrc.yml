@@ -1,7 +1,10 @@
 trailingComma: es5
-semi: false
 singleQuote: true
 overrides:
   - files: "*.css"
     options:
       singleQuote: false
+  - files: ["*.yml", "*.yml"]
+    options:
+      tabwidth: 2
+      useTabs: false
