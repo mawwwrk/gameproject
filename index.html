@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game served by Vite</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game served by Vite</title>
-</head>
+  <body>
+    <header>
+      <h1>JSGame</h1>
+    </header>
 
-<body>
-  <main class="grid-container">
-    <div id="app"></div>
-    <div id="readout-div"></div>
-    <canvas id="canvas"></canvas>
-  </main>
-  <footer class="container">
-    <div id="debug"></div>
-  </footer>
-  <script type="module" src="/src/main.ts"></script>
-</body>
+    <main class="grid-container">
+      <div id="app"></div>
+    </main>
 
+    <footer class="container">
+      <div id="debug"></div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
