@@ -1,36 +1,54 @@
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
 :root {
-  --canvas-width: 94vw;
+  --canvas-width: 97vw;
   --canvas-height: calc(var(--canvas-width) * 625e-3);
 
   font-family: Ubuntu, sans-serif;
 }
 
-body {
+/* body {
   box-sizing: border-box;
-}
+} */
 
-.grid-container {
-  display: grid;
+body.grid {
+  margin: 0;
 
   /* grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(auto, minmax(min-content 1fr)); */
   grid-template:
-    "canvas canvas canvas" 1fr
-    "canvas canvas canvas" 1fr
+    "header header header" 0.2fr
+    "canvas canvas canvas" 2fr
+    "canvas canvas canvas" 2fr
     "footer footer footer" 1fr
     / 1fr 1fr 1fr;
-  place-items: center;
-  row-gap: 1rem;
+  row-gap: 0.2ch;
+}
+
+header {
+  grid-area: header;
+}
+
+header > h1 {
+  margin: 0.5ch;
 }
 
 footer {
+  grid-area: footer;
   margin: 0.5em;
 }
 
-.container > * {
-  display: flex;
+.container {
+  display: grid;
+  place-items: center;
+}
+
+canvas {
+  width: var(--canvas-width);
+  height: var(--canvas-height);
+  outline: 1px solid black;
+  aspect-ratio: 16/10;
+  grid-area: canvas;
 }
 
 #app {
@@ -38,12 +56,7 @@ footer {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* text-align: center;   /color: #2c3e50; */
-  width: var(--canvas-width);
-  height: var(--canvas-height);
-  outline: 1px solid black;
-  aspect-ratio: 16/10;
-  grid-area: canvas;
+  /* text-align: center;   color: #2c3e50; */
 
   /* margin-top: 60px; */
 }
