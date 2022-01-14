@@ -1,9 +1,16 @@
 import { resizeCallback } from "../util";
 
-export function makeCanvas(width = 256, height = 256) {
+let n = 0;
+export function makeCanvas(selector = "canvas", width = 256, height = 256) {
   //Make the canvas element and add it to the DOM
-
+  /**
+   * @type {{ctx: CanvasRenderingContext2D} extends HTMLCanvasElement} canvas
+   */
   const canvas = document.createElement("canvas");
+  ++n;
+  selector === "canvas"
+    ? canvas.classList.add(`${selector}${n}`)
+    : (canvas.id = selector);
 
   canvas.width = width;
   canvas.height = height;

@@ -13,6 +13,9 @@
 
 body.grid {
   margin: 0;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
   /* grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(auto, minmax(min-content 1fr)); */
@@ -46,19 +49,16 @@ footer {
 canvas {
   width: var(--canvas-width);
   height: var(--canvas-height);
-  outline: 1px solid black;
   aspect-ratio: 16/10;
   grid-area: canvas;
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  outline: 1px solid black;
+}
 
-  /* text-align: center;   color: #2c3e50; */
-
-  /* margin-top: 60px; */
+#bg {
+  background-color: hsla(0deg 0 0 0%);
 }
 
 #readout-div {
