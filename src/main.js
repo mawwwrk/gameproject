@@ -2,7 +2,7 @@ import "https://cdn.skypack.dev/normalizecss";
 import { Circle, DisplayObj } from "./classes";
 import { makeCanvas, resizeObserver } from "./components/canvas";
 import "./style.css";
-import { fps, initControl, testHelper } from "./util";
+import { fps, initControl, randomInt, testHelper } from "./util";
 
 // const bgCanvas = makeCanvas("bg");
 const canvas = makeCanvas("app");
@@ -18,8 +18,12 @@ drawable.diameter = 50;
 
 drawable.setPosition(100, 100);
 
-const bBall = new Circle(96, 128, 20);
-[bBall.vx, bBall.vy] = [3, 2];
+const baller = new Circle(96, 128, 6);
+[baller.vx, baller.vy] = [0, 0];
+baller.vx = randomInt(5, 15);
+baller.vy = randomInt(5, 15);
+
+console.log(baller);
 
 const deltaTime = fps[120];
 let lastFrameTime = 0,
@@ -40,21 +44,42 @@ function draw(timestamp) {
     frame += 1;
 
     /*  */
-    //Move the ball
-    bBall.x += bBall.vx;
-    bBall.y += bBall.vy;
-    //Bounce the ball off the canvas edges.
-    //Left and right
-    if (bBall.x < 0 || bBall.x + bBall.diameter > canvas.width) {
-      bBall.vx = -bBall.vx;
+
+    baller.gravity = 0.3;
+    baller.frictionX = 1;
+    baller.frictionY = 0;
+    baller.mass = 1.3;
+    baller.vy += baller.gravity;
+
+    baller.vx *= baller.frictionX;
+    baller.x += baller.vx;
+    baller.y += baller.vy;
+
+    if (baller.x < 0) {
+      baller.x = 0;
+      baller.vx = -baller.vx / baller.mass;
     }
-    //Top and bottom
-    if (bBall.y < 0 || bBall.y + bBall.diameter > canvas.height) {
-      bBall.vy = -bBall.vy;
+
+    if (baller.x + baller.diameter > canvas.width) {
+      baller.x = canvas.width - baller.diameter;
+      baller.vx = -baller.vx / baller.mass;
     }
+    if (baller.y < 0) {
+      baller.y = 0;
+      baller.vy = -baller.vy / baller.mass;
+    }
+    if (baller.y + baller.diameter > canvas.height) {
+      baller.y = canvas.height - baller.diameter;
+      baller.vy = -baller.vy / baller.mass;
+      baller.frictionX = 0.96;
+    } else {
+      baller.frictionX = 1;
+    }
+
     /*  */
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    bBall.draw(ctx);
+    baller.draw(ctx);
+
     const drawCirc = testHelper(ctx, x, y);
     drawCirc(radius * 0.1, "fill");
     drawCirc(radius, "stroke", startA, endA);

@@ -9,9 +9,17 @@ export class DisplayObj {
     this.width = 0;
     this.height = 0;
 
-    //? velocity
+    //? velocity and acceleration
     this.vx = 0;
     this.vy = 0;
+    this.accelerationX = 0;
+    this.accelerationY = 0;
+
+    //? Physics properties
+    this.frictionX = 0;
+    this.frictionY = 0;
+    this.gravity = 0;
+    this.mass = 0;
   }
   get position() {
     return { x: this.x, y: this.y };

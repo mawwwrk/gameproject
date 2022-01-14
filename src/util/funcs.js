@@ -12,6 +12,10 @@ export const resizeCallback = (entries) => {
   );
 };
 
+export function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 /**
  * @param { CanvasRenderingContext2D } ctx
  * @param {number} x
