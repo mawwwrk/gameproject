@@ -1,8 +1,8 @@
-import { dispObj } from "../src/classes";
+import { DisplayObj } from "../src/classes";
 describe("instances of the displayObject class", () => {
   let testDispObj;
   beforeAll(() => {
-    testDispObj = new dispObj();
+    testDispObj = new DisplayObj();
   });
 
   it("has x, y, width, and height properties", () => {
