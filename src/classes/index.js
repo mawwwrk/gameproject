@@ -1,2 +1,2 @@
-export * from "./Circle";
-export * from "./dispObj";
+export * from "./dispObject";
+export * from "./shapes";

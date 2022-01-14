@@ -1,16 +1,27 @@
 import "https://cdn.skypack.dev/normalizecss";
-import { Circle, DisplayObj } from "./classes";
-import { makeCanvas, resizeObserver } from "./components/canvas";
+import { Circle, DisplayObject } from "./classes";
+import { makeCanvas } from "./components/canvas";
+import { contain } from "./components/stage";
 import "./style.css";
-import { fps, initControl, randomInt, testHelper } from "./util";
+import {
+  fps,
+  initControl,
+  proxiedResizeObserver,
+  randomInt,
+  testHelper,
+} from "./util";
 
 // const bgCanvas = makeCanvas("bg");
 const canvas = makeCanvas("app");
-resizeObserver.observe(canvas /* , bgCanvas */);
+const stage = new DisplayObject();
+stage.height = canvas.height;
+stage.width = canvas.width;
+const resizeObserver = proxiedResizeObserver(stage);
+resizeObserver.observe(canvas);
 
 const ctx = canvas.ctx;
 
-const drawable = new DisplayObj();
+const drawable = new DisplayObject();
 initControl(drawable);
 
 drawable.circular = true;
@@ -19,13 +30,15 @@ drawable.diameter = 50;
 drawable.setPosition(100, 100);
 
 const baller = new Circle(96, 128, 6);
-[baller.vx, baller.vy] = [0, 0];
 baller.vx = randomInt(5, 15);
 baller.vy = randomInt(5, 15);
 
 console.log(baller);
+baller.gravity = 0.3;
+baller.frictionX = 1;
+baller.frictionY = 0;
 
-const deltaTime = fps[120];
+const deltaTime = fps[60];
 let lastFrameTime = 0,
   frame = 0;
 /**
@@ -43,42 +56,33 @@ function draw(timestamp) {
     lastFrameTime += deltaTime;
     frame += 1;
 
-    /*  */
+    //? Apply gravity to the vertical velocity
+    // baller.vy += baller.gravity;
 
-    baller.gravity = 0.3;
-    baller.frictionX = 1;
-    baller.frictionY = 0;
-    baller.mass = 1.3;
+    //? Apply friction. `ball.frictionX` will be 0.96 if the ball is on the ground, and 1 if it's in the air
+    // baller.vx *= baller.frictionX;
+
+    //? Move to new frame position by applying the new calculated velocity to previous x and y position
     baller.vy += baller.gravity;
-
     baller.vx *= baller.frictionX;
+
     baller.x += baller.vx;
     baller.y += baller.vy;
-
-    if (baller.x < 0) {
-      baller.x = 0;
-      baller.vx = -baller.vx / baller.mass;
-    }
-
-    if (baller.x + baller.diameter > canvas.width) {
-      baller.x = canvas.width - baller.diameter;
-      baller.vx = -baller.vx / baller.mass;
-    }
-    if (baller.y < 0) {
-      baller.y = 0;
-      baller.vy = -baller.vy / baller.mass;
-    }
-    if (baller.y + baller.diameter > canvas.height) {
-      baller.y = canvas.height - baller.diameter;
-      baller.vy = -baller.vy / baller.mass;
+    let collision = contain(baller, stage.localBounds, true);
+    if (collision === "bottom") {
+      //Slow the ball down if it hits the bottom
       baller.frictionX = 0.96;
     } else {
       baller.frictionX = 1;
     }
-
+    /*  */
     /*  */
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     baller.draw(ctx);
+
+    // while (lastFrameTime < 500) {
+    // console.log(baller);
+    // }
 
     const drawCirc = testHelper(ctx, x, y);
     drawCirc(radius * 0.1, "fill");
@@ -86,7 +90,7 @@ function draw(timestamp) {
 
     const drawDrawable = testHelper(ctx, drawable.x, drawable.y);
     drawDrawable(drawable.radius * 0.5, "fill");
-    drawDrawable(drawable.radius, "stroke", startA, endA);
+    drawDrawable(drawable.radius, "stroke", 0, 1);
 
     ctx.font = "20px Ubuntu";
     ctx.fillText(
@@ -106,8 +110,5 @@ function draw(timestamp) {
     );
   }
   requestAnimationFrame(draw);
-  // const drawCirc = testHelper(ctx, x - 80, y);
-  // drawCirc(radius * 0.1, "fill");
-  // drawCirc(radius, "stroke", startA, endA);
 }
 draw(0);

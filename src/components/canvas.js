@@ -1,5 +1,3 @@
-import { resizeCallback } from "../util";
-
 let n = 0;
 export function makeCanvas(selector = "canvas", width = 256, height = 256) {
   //Make the canvas element and add it to the DOM
@@ -22,5 +20,3 @@ export function makeCanvas(selector = "canvas", width = 256, height = 256) {
   canvas.ctx = canvas.getContext("2d");
   return canvas;
 }
-
-export const resizeObserver = new ResizeObserver(resizeCallback);
