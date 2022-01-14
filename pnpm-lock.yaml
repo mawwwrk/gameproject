@@ -1929,12 +1929,15 @@ packages:
     resolution: {integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=}
     dev: true
 
+<<<<<<< HEAD
   /atob/2.1.2:
     resolution: {integrity: sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==}
     engines: {node: '>= 4.5.0'}
     hasBin: true
     dev: true
 
+=======
+>>>>>>> 789be80ca37324e9aee8af0514de204fc420c79e
   /autoprefixer/10.4.2_postcss@8.4.5:
     resolution: {integrity: sha512-9fOPpHKuDW1w/0EKfRmVnxTDt8166MAnLI3mgZ1JCnhNtYWxcJ6Ud5CO/AVOZi/AvFa8DY9RTy3h3+tFBlrrdQ==}
     engines: {node: ^10 || ^12 || >=14}
@@ -1951,7 +1954,11 @@ packages:
       postcss-value-parser: 4.2.0
     dev: true
 
+<<<<<<< HEAD
   /babel-jest/27.4.5_@babel+core@7.16.7:
+=======
+  /babel-jest/27.4.5_@babel+core@7.16.5:
+>>>>>>> 789be80ca37324e9aee8af0514de204fc420c79e
     resolution: {integrity: sha512-3uuUTjXbgtODmSv/DXO9nZfD52IyC2OYTFaXGRzL0kpykzroaquCrD5+lZNafTvZlnNqZHt5pb0M08qVBZnsnA==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     peerDependencies:
