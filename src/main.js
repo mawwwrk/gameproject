@@ -4,6 +4,7 @@ import { makeCanvas } from "./components/canvas";
 import { contain } from "./components/stage";
 import "./style.css";
 import {
+  drawPoint,
   fps,
   initControl,
   proxiedResizeObserver,
@@ -33,10 +34,15 @@ const baller = new Circle(96, 128, 6);
 baller.vx = randomInt(5, 15);
 baller.vy = randomInt(5, 15);
 
-console.log(baller);
+// console.log(baller);
 baller.gravity = 0.3;
 baller.frictionX = 1;
 baller.frictionY = 0;
+
+stage.addChild(drawable);
+stage.addChild(baller);
+
+let mainangle = 0.5 + Math.PI;
 
 const deltaTime = fps[60];
 let lastFrameTime = 0,
@@ -78,7 +84,6 @@ function draw(timestamp) {
     /*  */
     /*  */
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    baller.draw(ctx);
 
     // while (lastFrameTime < 500) {
     // console.log(baller);
@@ -88,9 +93,31 @@ function draw(timestamp) {
     drawCirc(radius * 0.1, "fill");
     drawCirc(radius, "stroke", startA, endA);
 
-    const drawDrawable = testHelper(ctx, drawable.x, drawable.y);
-    drawDrawable(drawable.radius * 0.5, "fill");
-    drawDrawable(drawable.radius, "stroke", 0, 1);
+    let drbl = drawable;
+    const drawDrawable = testHelper(ctx, drbl.x, drbl.y);
+    drawDrawable(drbl.radius * 0.35, "fill");
+    drawDrawable(
+      drbl.radius,
+      "stroke",
+      drbl.rotation - Math.PI - 0.5,
+      drbl.rotation - Math.PI + 0.5
+    );
+
+    ctx.stroke(drawPoint(drbl));
+
+    // const angleDegrees = {
+    //   main: mainangle,
+    //   comp1: mainangle - 45,
+    //   comp2: mainangle + 45,
+    // };
+    // const circPoint = point(
+    //   drbl.x,
+    //   drbl.y,
+    //   drbl.radius,
+    //   180 + (0.5 / Math.PI) * 180
+    // );
+
+    // point on circ 0.5 rad
 
     ctx.font = "20px Ubuntu";
     ctx.fillText(

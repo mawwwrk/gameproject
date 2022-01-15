@@ -89,16 +89,43 @@ const Dir = {
 
 let keyPress = Dir.None;
 
+function mouseEvListener(ev) {
+  {
+    ev.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (!(ev.target.nodeName === "CANVAS")) return;
+    let { offsetX, offsetY } = ev,
+      [dx, dy] = [offsetX - targetObj.x, offsetY - targetObj.y];
+    // targetObj.rotation = Math.atan2(dy, dx);
+    // targetObj.setPosition(offsetX, offsetY);
+  }
+}
+
+/**
+ * @typedef {PointerEvent} SpecialEvt
+ * @property {EventTarget}
+ *
+ * */
+
 /** @param {import("../classes").DisplayObject} targetObj */
 export function initControl(targetObj) {
-  /** @param {PointerEvent} ev */
   document.addEventListener("click", (ev) => {
     ev.preventDefault();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     if (!(ev.target.nodeName === "CANVAS")) return;
     let { offsetX, offsetY } = ev;
-    // targetObj.setPosition(offsetX, offsetY);
+    targetObj.setPosition(offsetX, offsetY);
+  });
+  document.addEventListener("mousemove", (ev) => {
+    ev.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (!(ev.target.nodeName === "CANVAS")) return;
+    let { offsetX, offsetY } = ev,
+      [dx, dy] = [offsetX - targetObj.x, offsetY - targetObj.y];
+    targetObj.rotation = Math.atan2(dy, dx);
   });
 
   document.addEventListener("keydown", (ev) => {
@@ -120,4 +147,27 @@ export function initControl(targetObj) {
         break;
     }
   });
+}
+
+export function point(centreX, centreY, radius, angle) {
+  let x, y;
+  x = centreX + radius * Math.cos(angle);
+  y = centreY + radius * Math.sin(angle);
+
+  return { x: x, y: y };
+}
+
+export function drawPoint(obj) {
+  const offset = (45 / 180) * Math.PI;
+  const compAngles = [obj.rotation - offset, obj.rotation + offset];
+  const path = new Path2D();
+  path.moveTo(obj.x, obj.y);
+  const compPoints = compAngles.map((a) =>
+    point(obj.x, obj.y, obj.radius * 0.35, a)
+  );
+  path.lineTo(compPoints[0].x, compPoints[0].y);
+  const targetPoint = point(obj.x, obj.y, obj.radius, obj.rotation);
+  path.lineTo(targetPoint.x, targetPoint.y);
+  path.lineTo(compPoints[1].x, compPoints[1].y);
+  return path;
 }
