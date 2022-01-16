@@ -1,4 +1,5 @@
 import "https://cdn.skypack.dev/normalizecss";
+import ref from "./assets/link_master.json";
 import { Circle, DisplayObject } from "./classes";
 import { makeCanvas } from "./components/canvas";
 import { contain } from "./components/stage";
@@ -39,18 +40,42 @@ baller.gravity = 0.3;
 baller.frictionX = 1;
 baller.frictionY = 0;
 
+/* loadingbg */
+
+const bg = new Image();
+bg.addEventListener("load", (_) => loadHandler("bg"));
+bg.src = "src/assets/bg.png";
+
+let bgisloaded = false;
+
+/* loadingbg */
+
 /* laodingsprite */
 
+console.log(ref.meta.frameTags);
+
+const movementTags = ref.meta.frameTags.filter((x) => x.name.match(/move/i));
+console.log(movementTags);
+
+const frames = [];
+for (let frame in ref.frames) {
+  frames.push(ref.frames[frame]);
+}
+console.log(frames);
+
 const myImage = new Image();
-myImage.addEventListener("load", loadHandler);
+myImage.addEventListener("load", (_) => loadHandler("link"));
 myImage.src = "src/assets/link_master.png";
 
 let imgisloaded = false;
 //The loadHandler is called when the image has loaded
-function loadHandler() {
+/**
+ * @param {string} which
+ */
+function loadHandler(which) {
   // "frame": { "x": 94, "y": 186, "w": 44, "h": 44 },
-  imgisloaded = true;
-  ctx.drawImage(myImage, 94, 168, 44, 44, 100, 100, 88, 88);
+  if (which === "link") imgisloaded = true;
+  if (which === "bg") bgisloaded = true;
 }
 
 /* laodingsprite */
@@ -100,6 +125,21 @@ function draw(timestamp) {
     /*  */
     /*  */
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const sizemod = canvas.width / 480;
+    if (bgisloaded)
+      ctx.drawImage(bg, 0, 0, 960, 480, 0, 0, canvas.width, canvas.height);
+    if (imgisloaded)
+      ctx.drawImage(
+        myImage,
+        94,
+        182,
+        44,
+        44,
+        100,
+        100,
+        44 * sizemod,
+        44 * sizemod
+      );
 
     // while (lastFrameTime < 500) {
     // console.log(baller);
@@ -136,6 +176,9 @@ function draw(timestamp) {
     // point on circ 0.5 rad
 
     ctx.font = "20px Ubuntu";
+    ctx.fillStyle = "rgb(255, 255, 255, 50%)";
+    ctx.fillRect(600, 80, 200, 110);
+    ctx.fillStyle = "black";
     ctx.fillText(
       `${lastFrameTime.toFixed(0)}, ${elapsed.toFixed(2)}`,
       x - 50,
