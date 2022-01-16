@@ -39,6 +39,22 @@ baller.gravity = 0.3;
 baller.frictionX = 1;
 baller.frictionY = 0;
 
+/* laodingsprite */
+
+const myImage = new Image();
+myImage.addEventListener("load", loadHandler);
+myImage.src = "src/assets/link_master.png";
+
+let imgisloaded = false;
+//The loadHandler is called when the image has loaded
+function loadHandler() {
+  // "frame": { "x": 94, "y": 186, "w": 44, "h": 44 },
+  imgisloaded = true;
+  ctx.drawImage(myImage, 94, 168, 44, 44, 100, 100, 88, 88);
+}
+
+/* laodingsprite */
+
 stage.addChild(drawable);
 stage.addChild(baller);
 
