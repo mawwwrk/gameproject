@@ -1,4 +1,5 @@
-export * from "./funcs.js";
+export * from "./funcs";
+export * from "./render";
 
 export const fps = {
   24: 1000 / 24,
