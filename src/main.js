@@ -52,20 +52,34 @@ let bgisloaded = false;
 
 /* laodingsprite */
 
-console.log(ref.meta.frameTags);
+let assets = {
+  load(sources) {
+    sources.forEach((source) => {
+      const ext = source.split(".").pop();
+      if (ext === "json") this.loadJson(source);
+    });
+  },
+  async loadJson(source) {
+    const resp = await fetch(source);
+    const jsonResponse = await resp.json();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const ref = /(?<=\/)\w+\.\w+$/.exec(source)[0];
 
-const movementTags = ref.meta.frameTags.filter((x) => x.name.match(/move/i));
-console.log(movementTags);
+    this[ref] = jsonResponse;
 
-const frames = [];
-for (let frame in ref.frames) {
-  frames.push(ref.frames[frame]);
+    if (jsonResponse.frames) {
+      this.loadSprites(jsonResponse, source);
 }
-console.log(frames);
+  },
+  loadSprites(jsonBody, source) {
+    return;
+  },
+};
 
-const myImage = new Image();
-myImage.addEventListener("load", (_) => loadHandler("link"));
-myImage.src = "src/assets/link_master.png";
+assets.load(["src/assets/link_master.json"]);
+
+console.log(assets);
 
 let imgisloaded = false;
 //The loadHandler is called when the image has loaded
