@@ -18,7 +18,7 @@ export const resizeCallback =
         }
 
         let { width, height } = entry.contentRect;
-
+        // target.width;
         Object.assign(target, { width, height });
       }
     );
@@ -33,8 +33,26 @@ export const resizeProxy = (
    * @param {any} value
    */
   set(target, prop, value) {
+    const origWidth = target.width;
     if (prop === "width" || prop === "height") {
       alias[prop] = value;
+    }
+    if (prop === "width") {
+      const childSprites = alias.children;
+      const background = childSprites[0];
+      let [, ...restOfThem] = childSprites;
+      let mod = value / origWidth;
+
+      const aspectRatio = background.height / background.width;
+      background.width = alias.width;
+      background.height = alias.width * aspectRatio;
+
+      if (origWidth !== 256)
+        restOfThem.forEach((ea) => {
+          let { x, y, scaleX } = ea;
+          ea.setPosition(x * mod, y * mod);
+          ea.setScale(scaleX * mod);
+        });
     }
     return Reflect.set(target, prop, value);
   },

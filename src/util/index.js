@@ -1,6 +1,7 @@
 export * from "./funcs";
 export * from "./input";
 export * from "./render";
+export * from "./statsReadout";
 
 export const fps = {
   24: 1000 / 24,

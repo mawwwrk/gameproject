@@ -1,3 +1,4 @@
+import { Rectangle } from ".";
 import { DisplayObject } from "./dispObject";
 
 export class Sprite extends DisplayObject {
@@ -53,5 +54,19 @@ export class Sprite extends DisplayObject {
       this.width,
       this.height
     );
+  }
+}
+
+export class Hero extends Sprite {
+  constructor(source, width, height) {
+    super(source);
+    this.hitbox = new Rectangle(width, height, "none", "none");
+    this.addChild(this.hitbox);
+    this.putCenter(this.hitbox);
+
+    Object.assign(this, { x: 120, y: 120, shadow: true });
+  }
+  beAhero() {
+    console.log("ima hero");
   }
 }
