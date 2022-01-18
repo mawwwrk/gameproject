@@ -46,18 +46,61 @@ function setup() {
   console.log(linkSprite);
   [backgroundImage, linkSprite].forEach((ea) => stage.addChild(ea));
 
-  gameLoop();
+  let fps = 30,
+    frameInterval = 1000 / fps,
+    ctx = canvas.ctx,
+    w = window.innerWidth,
+    h = window.innerHeight,
+    previousTime = 0,
+    framesDrawn = 0,
+    updateCycles = 0,
+    totalElapsed = 0;
 
-  function gameLoop() {
+  function update() {
     stage.putCenter(backgroundImage);
 
-    if (keypress & inputDir.Up) linkSprite.y -= 1;
+    /*     if (keypress & inputDir.Up) linkSprite.y -= 1;
     if (keypress & inputDir.Down) linkSprite.y += 1;
     if (keypress & inputDir.Left) linkSprite.x -= 1;
-    if (keypress & inputDir.Right) linkSprite.x += 1;
+    if (keypress & inputDir.Right) linkSprite.x += 1; */
 
-    requestAnimationFrame(gameLoop); //Move the ball
+    let friction = 0.7;
+    let maxVelocity = 6;
+    linkSprite.accelerationX = linkSprite.accelerationY = 0.6;
+    if (!(Math.abs(linkSprite.vX + linkSprite.vY) >= maxVelocity)) {
+      if (keypress & inputDir.Up) linkSprite.vY -= linkSprite.accelerationY;
+      if (keypress & inputDir.Down) linkSprite.vY += linkSprite.accelerationY;
+      if (keypress & inputDir.Left) linkSprite.vX -= linkSprite.accelerationX;
+      if (keypress & inputDir.Right) linkSprite.vX += linkSprite.accelerationX;
+    }
+    linkSprite.vY *= friction;
+    linkSprite.vX *= friction;
+
+    const hitBoxCollision = contain(linkSprite, stage.localBounds);
+    // if (hitBoxCollision) {
+    //   // console.log(linkSprite.hitbox.x);
+    linkSprite.x = linkSprite.x + linkSprite.vX;
+    linkSprite.y = linkSprite.y + linkSprite.vY;
+    // }
+    // console.log(linkHitbox);
+    ++updateCycles;
+  }
+
+  runGame();
+
+  function runGame(timestamp) {
+    if (!timestamp) timestamp = 0;
+    let elapsed = timestamp - previousTime;
+    totalElapsed += elapsed;
+    update();
+
+    while (totalElapsed >= frameInterval) {
     render(stage, canvas);
+      ++framesDrawn;
+      totalElapsed -= frameInterval;
+    }
+    previousTime = timestamp;
+    requestAnimationFrame(runGame);
   }
 }
 
