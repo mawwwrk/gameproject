@@ -2,14 +2,8 @@ export class DisplayObject {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   #circular;
-  /**
-   * @type {number}
-   */
-  radius;
-  /**
-   * @type {number}
-   */
-  diameter;
+  diameter = undefined;
+  radius = undefined;
   constructor() {
     //? position and size
     this.x = 0;
@@ -40,7 +34,13 @@ export class DisplayObject {
 
     this.#circular = false;
 
+    /**
+     * @type { DisplayObject|undefined }
+     */
     this.parent = undefined;
+    /**
+     * @type {DisplayObject[]}
+     */
     this.children = [];
   }
   get halfWidth() {
@@ -59,12 +59,12 @@ export class DisplayObject {
     return { x: this.x, y: this.y };
   }
   /**
-   * @param {number} x
-   * @param {number} y
+   * @type { (x:number, y:number)=> void }
    */
   setPosition(x, y) {
     [this.x, this.y] = [x, y];
   }
+  /** @type {number} */
   get gx() {
     //The sprite's global x position is a combination of its local x value and its parent's global x value
     if (this.parent) {
@@ -73,6 +73,7 @@ export class DisplayObject {
       return this.x;
     }
   }
+  /**@type {number} */
   get gy() {
     if (this.parent) {
       return this.y + this.parent.gy;
@@ -80,7 +81,15 @@ export class DisplayObject {
       return this.y;
     }
   }
+  putCenter(b, xOffset = 0, yOffset = 0) {
+    let a = this;
+    b.x = a.x + a.halfWidth - b.halfWidth + xOffset;
+    b.y = a.y + a.halfHeight - b.halfHeight + yOffset;
+  }
 
+  /**
+   * @param {DisplayObject} sprite
+   */
   addChild(sprite) {
     if (sprite.parent) {
       sprite.parent.removeChild(sprite);
@@ -89,6 +98,9 @@ export class DisplayObject {
     this.children.push(sprite);
   }
 
+  /**
+   * @param { DisplayObject} sprite
+   */
   removeChild(sprite) {
     if (sprite.parent === this) {
       this.children.splice(this.children.indexOf(sprite), 1);
