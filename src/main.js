@@ -1,8 +1,7 @@
 import "https://cdn.skypack.dev/normalizecss";
 import { assets } from "./assets";
-import { Circle, DisplayObject, Sprite } from "./classes";
+import { DisplayObject, Sprite } from "./classes";
 import { makeCanvas } from "./components/canvas";
-import { contain } from "./components/stage";
 import "./style.css";
 import { proxiedResizeObserver, render } from "./util";
 
@@ -22,13 +21,10 @@ function setup() {
   [stage.width, stage.height] = [canvas.width, canvas.height];
   proxiedResizeObserver(stage).observe(canvas);
 
-  const bg = new Sprite(assets["outdoors.png"]);
-  const ball = new Circle(2, 96, 64);
-  ball.vx = 3;
-  ball.vy = 2;
-  // stage.addChild(bg);
-  [ball, bg].forEach((ea) => stage.addChild(ea));
-  let collision = contain(ball, stage.localBounds);
+  const backgroundImage = new Sprite(assets["outdoors.png"]);
+  const linkSprite = new Sprite(assets.link_master.moveShieldDown);
+
+  [backgroundImage, linkSprite].forEach((ea) => stage.addChild(ea));
   gameLoop();
 
   function gameLoop() {

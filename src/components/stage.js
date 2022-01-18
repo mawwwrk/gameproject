@@ -1,5 +1,5 @@
 /**
- * @param {import("../classes").DisplayObject} container
+ * @param {import("../classes").DisplayObject} contain
  */
 export function contain(sprite, bounds, bounce = false) {
   let x = bounds.x;
