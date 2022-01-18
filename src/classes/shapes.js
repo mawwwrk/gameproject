@@ -1,6 +1,5 @@
 import { DisplayObject } from "./dispObject";
 
-
 export class Rectangle extends DisplayObject {
   constructor(
     width = 32,
