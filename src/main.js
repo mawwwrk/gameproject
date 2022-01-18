@@ -1,9 +1,10 @@
 import "https://cdn.skypack.dev/normalizecss";
 import { assets } from "./assets";
-import { DisplayObject, Sprite } from "./classes";
+import { DisplayObject, Hero, Sprite } from "./classes";
 import { makeCanvas } from "./components/canvas";
+import { contain } from "./components/stage";
 import "./style.css";
-import { proxiedResizeObserver, render } from "./util";
+import { proxiedResizeObserver, render, statsReadout } from "./util";
 import { inputDir, Key } from "./util/input";
 
 assets
@@ -15,6 +16,7 @@ assets
   .then(() => setup());
 
 function setup() {
+  console.log(assets);
   let keypress = inputDir.None;
   const [[akey, left], [dkey, right], [wkey, up_], [skey, down]] = [
     ["KeyA", "Left"],
@@ -26,13 +28,19 @@ function setup() {
     let arrow = `Arrow${dir}`;
     return [key, arrow].map(
       (ea) =>
-    new Key(
+        new Key(
           `${ea}`,
           () => (keypress |= inputDir[dir]),
           () => (keypress &= ~inputDir[dir])
         )
-  );
+    );
   });
+
+  let space = new Key(
+    "KeyV",
+    () => console.log(linkSprite.x, linkSprite.y),
+    () => console.log(linkSprite.hitbox.gx, linkSprite.hitbox.gy)
+  );
 
   const canvas = makeCanvas("app");
   const stage = new DisplayObject();
@@ -42,8 +50,8 @@ function setup() {
   const backgroundImage = new Sprite(assets["outdoors.png"]);
   const linkSprite = new Hero(assets.link_master, 16, 26);
 
-  Object.assign(linkSprite, { scaleX: linkScale, scaleY: linkScale });
-  console.log(linkSprite);
+  linkSprite.setScale(1.2);
+
   [backgroundImage, linkSprite].forEach((ea) => stage.addChild(ea));
 
   let fps = 30,
@@ -59,14 +67,9 @@ function setup() {
   function update() {
     stage.putCenter(backgroundImage);
 
-    /*     if (keypress & inputDir.Up) linkSprite.y -= 1;
-    if (keypress & inputDir.Down) linkSprite.y += 1;
-    if (keypress & inputDir.Left) linkSprite.x -= 1;
-    if (keypress & inputDir.Right) linkSprite.x += 1; */
-
-    let friction = 0.7;
+    let friction = 0.75;
     let maxVelocity = 6;
-    linkSprite.accelerationX = linkSprite.accelerationY = 0.6;
+    linkSprite.accelerationX = linkSprite.accelerationY = 1.5;
     if (!(Math.abs(linkSprite.vX + linkSprite.vY) >= maxVelocity)) {
       if (keypress & inputDir.Up) linkSprite.vY -= linkSprite.accelerationY;
       if (keypress & inputDir.Down) linkSprite.vY += linkSprite.accelerationY;
@@ -77,12 +80,10 @@ function setup() {
     linkSprite.vX *= friction;
 
     const hitBoxCollision = contain(linkSprite, stage.localBounds);
-    // if (hitBoxCollision) {
-    //   // console.log(linkSprite.hitbox.x);
+
     linkSprite.x = linkSprite.x + linkSprite.vX;
     linkSprite.y = linkSprite.y + linkSprite.vY;
-    // }
-    // console.log(linkHitbox);
+
     ++updateCycles;
   }
 
@@ -92,204 +93,24 @@ function setup() {
     if (!timestamp) timestamp = 0;
     let elapsed = timestamp - previousTime;
     totalElapsed += elapsed;
-    update();
 
     while (totalElapsed >= frameInterval) {
-    render(stage, canvas);
-      ++framesDrawn;
+      update();
       totalElapsed -= frameInterval;
     }
+    render(stage, canvas);
+    ++framesDrawn;
+    // while (elapsed > fps) update(timestamp);
+
+    statsReadout(window.innerWidth, ctx, linkSprite, {
+      timestamp,
+      elapsed,
+      totalElapsed,
+      framesDrawn,
+      updateCycles,
+    });
+
     previousTime = timestamp;
     requestAnimationFrame(runGame);
   }
 }
-
-// const drawable = new DisplayObject();
-// initControl(drawable);
-
-// drawable.circular = true;
-// drawable.diameter = 50;
-
-// drawable.setPosition(100, 100);
-
-// const baller = new Circle(96, 128, 6);
-// baller.vx = randomInt(5, 15);
-// baller.vy = randomInt(5, 15);
-
-// // console.log(baller);
-// baller.gravity = 0.3;
-// baller.frictionX = 1;
-// baller.frictionY = 0;
-
-/* loadingbg */
-
-// let bgisloaded = false;
-
-// const bg = new Image();
-// bg.addEventListener("load", () => (bgisloaded = true));
-// bg.src = "src/assets/bg.png";
-
-// console.log(bg);
-
-// console.log(assets);
-
-/* loadingbg */
-
-/* //! laodingsprite */
-
-// const fetchign = fetch("src/assets/link_master.json")
-//   .then((res) => res.json())
-//   .then((jsonBody) => {
-//     console.log(jsonBody);
-//     return jsonBody;
-//   });
-// console.log(fetchign);
-
-// console.log(ref.meta.frameTags);
-
-// const movementTags = ref.meta.frameTags.filter((x) => x.name.match(/move/i));
-// console.log(movementTags);
-
-// console.log(Object.keys(ref.frames));
-
-// const frames = [];
-// for (let frame in ref.frames) {
-//   frames.push(ref.frames[frame]);
-// }
-// console.log(frames);
-
-// const myImage = new Image();
-// myImage.addEventListener("load", (_) => loadHandler("link"));
-// myImage.src = "src/assets/link_master.png";
-
-// let imgisloaded = false;
-// //The loadHandler is called when the image has loaded
-// /**
-//  * @param {string} which
-//  */
-// function loadHandler(which) {
-//   // "frame": { "x": 94, "y": 186, "w": 44, "h": 44 },
-//   if (which === "link") imgisloaded = true;
-//   if (which === "bg") bgisloaded = true;
-// }
-
-// /* //! laodingsprite */
-
-// // stage.addChild(drawable);
-// // stage.addChild(baller);
-
-// let mainangle = 0.5 + Math.PI;
-
-// const deltaTime = fps[60];
-// let lastFrameTime = 0,
-//   frame = 0;
-// /**
-//  * @param {number} timestamp
-//  */
-// function draw(timestamp) {
-//   let elapsed = timestamp - lastFrameTime;
-//   let counter = timestamp * 8e-3,
-//     startA = counter,
-//     endA = startA + 1,
-//     x = canvas.width - 120,
-//     y = 65,
-//     radius = 25;
-//   if (elapsed >= deltaTime) {
-//     lastFrameTime += deltaTime;
-//     frame += 1;
-
-//     //? Apply gravity to the vertical velocity
-//     // baller.vy += baller.gravity;
-
-//     //? Apply friction. `ball.frictionX` will be 0.96 if the ball is on the ground, and 1 if it's in the air
-//     // baller.vx *= baller.frictionX;
-
-//     //? Move to new frame position by applying the new calculated velocity to previous x and y position
-//     // baller.vy += baller.gravity;
-//     // baller.vx *= baller.frictionX;
-
-//     // baller.x += baller.vx;
-//     // baller.y += baller.vy;
-//     // let collision = contain(baller, stage.localBounds, true);
-//     // if (collision === "bottom") {
-//     //   //Slow the ball down if it hits the bottom
-//     //   baller.frictionX = 0.96;
-//     // } else {
-//     //   baller.frictionX = 1;
-//     // }
-//     // /*  */
-//     // /*  */
-//     ctx.clearRect(0, 0, canvas.width, canvas.height);
-//     // const sizemod = canvas.width / 480;
-//     // if (bgisloaded)
-//     //   ctx.drawImage(bg, 0, 0, 960, 480, 0, 0, canvas.width, canvas.height);
-//     // if (imgisloaded)
-//     //   ctx.drawImage(
-//     //     myImage,
-//     //     94,
-//     //     182,
-//     //     44,
-//     //     44,
-//     //     100,
-//     //     100,
-//     //     44 * sizemod,
-//     //     44 * sizemod
-//     //   );
-
-//     // while (lastFrameTime < 500) {
-//     // console.log(baller);
-//     // }
-
-//     const drawCirc = testHelper(ctx, x, y);
-//     drawCirc(radius * 0.1, "fill");
-//     drawCirc(radius, "stroke", startA, endA);
-
-//     // let drbl = drawable;
-//     // const drawDrawable = testHelper(ctx, drbl.x, drbl.y);
-//     // drawDrawable(drbl.radius * 0.35, "fill");
-//     // drawDrawable(
-//     //   drbl.radius,
-//     //   "stroke",
-//     //   drbl.rotation - Math.PI - 0.5,
-//     //   drbl.rotation - Math.PI + 0.5
-//     // );
-
-//     // ctx.stroke(drawPoint(drbl));
-
-//     // const angleDegrees = {
-//     //   main: mainangle,
-//     //   comp1: mainangle - 45,
-//     //   comp2: mainangle + 45,
-//     // };
-//     // const circPoint = point(
-//     //   drbl.x,
-//     //   drbl.y,
-//     //   drbl.radius,
-//     //   180 + (0.5 / Math.PI) * 180
-//     // );
-
-//     // point on circ 0.5 rad
-
-//     ctx.font = "20px Ubuntu";
-//     ctx.fillStyle = "rgb(255, 255, 255, 50%)";
-//     ctx.fillRect(600, 80, 200, 110);
-//     ctx.fillStyle = "black";
-//     ctx.fillText(
-//       `${lastFrameTime.toFixed(0)}, ${elapsed.toFixed(2)}`,
-//       x - 50,
-//       y + 50
-//     );
-//     ctx.fillText(
-//       `${(timestamp * 1e-3).toFixed(2)}, ${deltaTime.toFixed(2)}`,
-//       x - 50,
-//       y + 75
-//     );
-//     ctx.fillText(
-//       `${frame}, ${((1e3 * frame) / timestamp).toFixed(2)}`,
-//       x - 50,
-//       y + 100
-//     );
-//   }
-//   requestAnimationFrame(draw);
-// }
-// // draw(0);
