@@ -4,7 +4,7 @@ import { DisplayObject, Sprite } from "./classes";
 import { makeCanvas } from "./components/canvas";
 import "./style.css";
 import { proxiedResizeObserver, render } from "./util";
-import { Key } from "./util/input";
+import { inputDir, Key } from "./util/input";
 
 assets
   .load([
@@ -15,9 +15,15 @@ assets
   .then(() => setup());
 
 function setup() {
-  const [left, right, up, down] = ["Left", "Right", "Up", "Down"].map(
-    (ea) => new Key(`Arrow${ea}`)
+  let keypress = inputDir.None;
+  const [left, right, up, down] = ["Left", "Right", "Up", "Down"].map((ea) => {
+    new Key(
+      `Arrow${ea}`,
+      () => (keypress |= inputDir[ea]),
+      () => (keypress &= ~inputDir[ea])
   );
+  });
+
   const canvas = makeCanvas("app");
   const stage = new DisplayObject();
   [stage.width, stage.height] = [canvas.width, canvas.height];
@@ -35,6 +41,12 @@ function setup() {
 
   function gameLoop() {
     stage.putCenter(backgroundImage);
+
+    if (keypress & inputDir.Up) linkSprite.y -= 1;
+    if (keypress & inputDir.Down) linkSprite.y += 1;
+    if (keypress & inputDir.Left) linkSprite.x -= 1;
+    if (keypress & inputDir.Right) linkSprite.x += 1;
+
     requestAnimationFrame(gameLoop); //Move the ball
     render(stage, canvas);
   }

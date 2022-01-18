@@ -31,24 +31,8 @@ export class Key {
     ev.preventDefault();
   }
 }
-
-export function keyboardInput(code) {
-  let key = {
-    code,
-    isDown: false,
-    isUp: true,
-    press: undefined,
-    release: undefined,
-  };
-}
-
-const keys = {
-  Space: "Space",
-  Arrows: ["Left", "Right", "Up", "Down"],
-  Wasd: ["W", "A", "S", "D"],
-};
-
-const Dir = {
+/** @type {Object<string, number>} inputDir */
+export const inputDir = {
   None: 0,
   Left: 1 << 0,
   Right: 1 << 1,
@@ -56,7 +40,7 @@ const Dir = {
   Down: 1 << 3,
 };
 
-let keyPress = Dir.None;
+let keyPress = inputDir.None;
 
 function mouseEvListener(ev) {
   {
