@@ -16,11 +16,21 @@ assets
 
 function setup() {
   let keypress = inputDir.None;
-  const [left, right, up, down] = ["Left", "Right", "Up", "Down"].map((ea) => {
+  const [[akey, left], [dkey, right], [wkey, up_], [skey, down]] = [
+    ["KeyA", "Left"],
+    ["KeyD", "Right"],
+    ["KeyW", "Up"],
+    ["KeyS", "Down"],
+  ].map((codes) => {
+    let [key, dir] = codes;
+    let arrow = `Arrow${dir}`;
+    return [key, arrow].map(
+      (ea) =>
     new Key(
-      `Arrow${ea}`,
-      () => (keypress |= inputDir[ea]),
-      () => (keypress &= ~inputDir[ea])
+          `${ea}`,
+          () => (keypress |= inputDir[dir]),
+          () => (keypress &= ~inputDir[dir])
+        )
   );
   });
 
@@ -30,8 +40,7 @@ function setup() {
   proxiedResizeObserver(stage).observe(canvas);
 
   const backgroundImage = new Sprite(assets["outdoors.png"]);
-  const linkSprite = new Sprite(assets.link_master);
-  const linkScale = 1.8;
+  const linkSprite = new Hero(assets.link_master, 16, 26);
 
   Object.assign(linkSprite, { scaleX: linkScale, scaleY: linkScale });
   console.log(linkSprite);
