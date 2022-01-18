@@ -21,8 +21,8 @@ export class DisplayObject {
     this.scaleY = 1;
 
     //? velocity and acceleration
-    this.vx = 0;
-    this.vy = 0;
+    this.vX = 0;
+    this.vY = 0;
     this.accelerationX = 0;
     this.accelerationY = 0;
 
@@ -33,6 +33,13 @@ export class DisplayObject {
     this.mass = 0;
 
     this.#circular = false;
+
+    //? adding a shadow for depth
+    this.shadow = false;
+    this.shadowColor = "rgba(100, 100, 100, 0.5)";
+    this.shadowOffsetX = 3;
+    this.shadowOffsetY = 3;
+    this.shadowBlur = 3;
 
     /**
      * @type { DisplayObject|undefined }
