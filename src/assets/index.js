@@ -43,19 +43,15 @@ export let assets = {
     const frameKeys = Object.keys(jsonResponse.frames);
     const imageLoadHandler = () => {
       this[imageSrc] = image;
-      this[filename] = {};
+      this[filename] = { image: this[imageSrc], frameTags: {} };
 
       for (let frametag of jsonResponse.meta.frameTags) {
         let { name: frameTagName, from, to } = frametag,
           i = from + 0;
-        if (!this[filename]?.[frameTagName])
-          this[filename][frameTagName] = {
-            image: this[imageSrc],
-            taggedFrames: [],
-          };
-
+        if (!this[filename].frameTags?.[frameTagName])
+          this[filename].frameTags[frameTagName] = [];
         do {
-          this[filename][frameTagName].taggedFrames.push(
+          this[filename].frameTags[frameTagName].push(
             jsonResponse.frames[frameKeys[i]].frame
           );
           i++;
@@ -74,7 +70,7 @@ export let assets = {
       this[imageSrc] = image;
       Object.keys(jsonResponse.frames).forEach((frame) => {
         this[frame] = jsonResponse.frames[frame];
-        this[frame].source = image;
+        this[frame].source = this[imageSrc];
       });
       reportLoaded();
     };
@@ -84,3 +80,42 @@ export let assets = {
   },
 };
 
+// const assetHandler = new Proxy(x, {
+//     get(target, prop) {
+//         if target.
+//   },
+// });
+
+// export let assets = {
+//   toLoad: 0,
+//   loaded: 0,
+//   /**
+//    * @param {string[]} sources
+//    */
+//   load(sources) {
+//     return /** @type {Promise<void>} */ (
+//       new Promise((resolve) => {
+//         let loadHandler = () => {
+//           this.loaded += 1;
+//           if (this.toLoad === this.loaded) {
+//             this.toLoad = 0;
+//             this.loaded = 0;
+//             console.log("finished loading assets.");
+//             // if all loaded, resolve the promise
+//             resolve();
+//           }
+//           console.log("beginning load...");
+//           this.toLoad = sources.length;
+
+//           sources.forEach(async (source) => {
+//             const resp = await fetch(source);
+//             const json = await resp.json();
+//             const ref = /(?<=\/)\w+(?=\.)/.exec( source )[0]
+//             this[ref] = json;
+//             if
+//           });
+//         };
+//       })
+//     );
+//   },
+// };

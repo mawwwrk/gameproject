@@ -6,7 +6,7 @@ export class Sprite extends DisplayObject {
     Object.assign(this, { x, y });
 
     if (source instanceof Image) this.createFromImage(source);
-    if (source.taggedFrames) this.createFromTaggedFrames(source);
+    if (source.frameTags) this.createFromFrameTags(source);
     if (source.frame) this.createFromAtlas(source);
   }
 
@@ -31,13 +31,16 @@ export class Sprite extends DisplayObject {
     this.sourceHeight = this.tilesetFrame.frame.h;
   }
 
-  createFromTaggedFrames(source) {
+  createFromFrameTags(source) {
     this.source = source.image;
-    this.sourceX = source.taggedFrames[0].x;
-    this.sourceY = source.taggedFrames[0].y;
-    this.width = this.sourceWidth = source.taggedFrames[0].w;
-    this.height = this.sourceHeight = source.taggedFrames[0].h;
+    this.frameTags = source.frameTags;
+    const ref = Object.keys(this.frameTags)[0];
+    this.sourceX = this.frameTags[ref][0].x;
+    this.sourceY = this.frameTags[ref][0].y;
+    this.width = this.sourceWidth = this.frameTags[ref][0].w;
+    this.height = this.sourceHeight = this.frameTags[ref][0].h;
   }
+
   draw(ctx) {
     ctx.drawImage(
       this.source,
