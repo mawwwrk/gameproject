@@ -1,4 +1,5 @@
 export * from "./funcs";
+export * from "./input";
 export * from "./render";
 
 export const fps = {

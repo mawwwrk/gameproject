@@ -4,6 +4,7 @@ import { DisplayObject, Sprite } from "./classes";
 import { makeCanvas } from "./components/canvas";
 import "./style.css";
 import { proxiedResizeObserver, render } from "./util";
+import { Key } from "./util/input";
 
 assets
   .load([
@@ -14,33 +15,27 @@ assets
   .then(() => setup());
 
 function setup() {
-  console.log(assets);
-  // const bgCanvas = makeCanvas("bg");
+  const [left, right, up, down] = ["Left", "Right", "Up", "Down"].map(
+    (ea) => new Key(`Arrow${ea}`)
+  );
   const canvas = makeCanvas("app");
   const stage = new DisplayObject();
   [stage.width, stage.height] = [canvas.width, canvas.height];
   proxiedResizeObserver(stage).observe(canvas);
 
   const backgroundImage = new Sprite(assets["outdoors.png"]);
-  const linkSprite = new Sprite(assets.link_master.moveShieldDown);
+  const linkSprite = new Sprite(assets.link_master);
+  const linkScale = 1.8;
 
+  Object.assign(linkSprite, { scaleX: linkScale, scaleY: linkScale });
+  console.log(linkSprite);
   [backgroundImage, linkSprite].forEach((ea) => stage.addChild(ea));
+
   gameLoop();
 
   function gameLoop() {
+    stage.putCenter(backgroundImage);
     requestAnimationFrame(gameLoop); //Move the ball
-
-    ball.x += ball.vx;
-    ball.y += ball.vy; //Bounce the ball off the canvas edges. //Left and right
-
-    if (ball.x < 0 || ball.x + ball.diameter > canvas.width) {
-      ball.vx = -ball.vx;
-    } //Top and bottom
-
-    if (ball.y < 0 || ball.y + ball.diameter > canvas.height) {
-      ball.vy = -ball.vy;
-    } //Render the animation
-
     render(stage, canvas);
   }
 }

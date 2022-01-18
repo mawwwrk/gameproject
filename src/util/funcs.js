@@ -18,6 +18,7 @@ export const resizeCallback =
         }
 
         let { width, height } = entry.contentRect;
+
         Object.assign(target, { width, height });
       }
     );
