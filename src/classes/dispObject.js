@@ -65,6 +65,14 @@ export class DisplayObject {
   get position() {
     return { x: this.x, y: this.y };
   }
+  setScale(scaleX, scaleY = undefined) {
+    if (!scaleY && this.scaleX !== this.scaleY) {
+      console.log("scale X and Y are not equal, please supply two values");
+      return;
+    }
+    this.scaleX = scaleX;
+    this.scaleY = scaleY ? scaleY : scaleX;
+  }
   /**
    * @type { (x:number, y:number)=> void }
    */
