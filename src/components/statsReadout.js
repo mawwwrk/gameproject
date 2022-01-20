@@ -9,9 +9,9 @@ export function statsReadout(
   ctx.fillRect(windowWidth - 240, 20, 200, 110);
   ctx.fillStyle = "rgba(0,0,0,100%)";
   ctx.fillText(
-    `linkVelocity:\t ${(hero.vX + hero.vY).toFixed(2)}, x: \t${Math.round(
+    `linkVelocity:\t ${(hero.vX + hero.vY).toFixed(2)},\tx: ${Math.round(
       hero.x
-    )},y: \t ${Math.round(hero.y)}`,
+    )}\ty: ${Math.round(hero.y)}`,
     windowWidth - 237,
     0 + 125
   );
