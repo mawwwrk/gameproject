@@ -1,37 +1,50 @@
 import "https://cdn.skypack.dev/normalizecss";
 import { assets } from "./assets";
-import { DisplayObject, Hero, Sprite } from "./classes";
-import { makeCanvas } from "./components/canvas";
-import { contain } from "./components/stage";
+import { Blob, DisplayObject, Hero, Sprite } from "./classes";
+import { contain, makeCanvas, statsReadout } from "./components";
 import "./style.css";
-import { proxiedResizeObserver, render, statsReadout } from "./util";
-import { inputDir, Key } from "./util/input";
+import {
+  Dir,
+  filterPropsIn,
+  frameInterval,
+  Key,
+  proxiedResizeObserver,
+  render,
+} from "./util";
 
 assets
   .load([
     "src/assets/link_master.json",
     "src/assets/bg.json",
     "src/assets/enemies.json",
+    "src/assets/blob.json",
   ])
   .then(() => setup());
 
 function setup() {
   console.log(assets);
-  let keypress = inputDir.None;
+
+  let input = { key: "Down", dir: Dir.None };
   const [[akey, left], [dkey, right], [wkey, up_], [skey, down]] = [
     ["KeyA", "Left"],
     ["KeyD", "Right"],
     ["KeyW", "Up"],
     ["KeyS", "Down"],
   ].map((codes) => {
-    let [key, dir] = codes;
-    let arrow = `Arrow${dir}`;
+    let [key, keyDir] = codes;
+    let arrow = `Arrow${keyDir}`;
     return [key, arrow].map(
       (ea) =>
         new Key(
           `${ea}`,
-          () => (keypress |= inputDir[dir]),
-          () => (keypress &= ~inputDir[dir])
+          () => {
+            input.dir |= Dir[keyDir];
+            input.key = keyDir;
+          },
+          () => {
+            input.dir &= ~Dir[keyDir];
+            // if (input.dir !== inputDir.None) input.key = 1;
+          }
         )
     );
   });
@@ -46,19 +59,26 @@ function setup() {
   const stage = new DisplayObject();
   [stage.width, stage.height] = [canvas.width, canvas.height];
   proxiedResizeObserver(stage).observe(canvas);
-
   const backgroundImage = new Sprite(assets["outdoors.png"]);
+  let enemies = [];
+
+  const blob = new Blob(filterPropsIn(assets)("pinkblob"), 100, 100);
+
+  enemies = [...enemies, blob];
   const linkSprite = new Hero(assets.link_master, 16, 26);
 
-  linkSprite.setScale(1.2);
+  linkSprite.setScale(1.5);
 
-  [backgroundImage, linkSprite].forEach((ea) => stage.addChild(ea));
+  [backgroundImage, linkSprite, blob].forEach((ea) => stage.addChild(ea));
 
-  let fps = 30,
-    frameInterval = 1000 / fps,
-    ctx = canvas.ctx,
-    w = window.innerWidth,
-    h = window.innerHeight,
+  canvas.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    blob.newX = ev.clientX;
+    blob.newY = ev.clientY;
+    console.log(blob);
+  });
+
+  let ctx = canvas.ctx,
     previousTime = 0,
     framesDrawn = 0,
     updateCycles = 0,
@@ -67,22 +87,10 @@ function setup() {
   function update() {
     stage.putCenter(backgroundImage);
 
-    let friction = 0.75;
-    let maxVelocity = 6;
-    linkSprite.accelerationX = linkSprite.accelerationY = 1.5;
-    if (!(Math.abs(linkSprite.vX + linkSprite.vY) >= maxVelocity)) {
-      if (keypress & inputDir.Up) linkSprite.vY -= linkSprite.accelerationY;
-      if (keypress & inputDir.Down) linkSprite.vY += linkSprite.accelerationY;
-      if (keypress & inputDir.Left) linkSprite.vX -= linkSprite.accelerationX;
-      if (keypress & inputDir.Right) linkSprite.vX += linkSprite.accelerationX;
-    }
-    linkSprite.vY *= friction;
-    linkSprite.vX *= friction;
+    blob.act();
+    linkSprite.act(input);
 
-    const hitBoxCollision = contain(linkSprite, stage.localBounds);
-
-    linkSprite.x = linkSprite.x + linkSprite.vX;
-    linkSprite.y = linkSprite.y + linkSprite.vY;
+    /* const hitBoxCollision = */ contain(linkSprite, stage.localBounds);
 
     ++updateCycles;
   }
@@ -100,7 +108,6 @@ function setup() {
     }
     render(stage, canvas);
     ++framesDrawn;
-    // while (elapsed > fps) update(timestamp);
 
     statsReadout(window.innerWidth, ctx, linkSprite, {
       timestamp,

@@ -32,15 +32,25 @@ export class Key {
   }
 }
 /** @type {Object<string, number>} inputDir */
-export const inputDir = {
+export const Dir = {
   None: 0,
-  Left: 1 << 0,
+  Up: 1 << 0,
   Right: 1 << 1,
-  Up: 1 << 2,
-  Down: 1 << 3,
+  Down: 1 << 2,
+  Left: 1 << 3,
 };
 
-let keyPress = inputDir.None;
+let keyPress = Dir.None;
+
+export function checkDirection(
+  valueToCheck,
+  { ifUp: doUp, ifDown: doDown, ifLeft: doLeft, ifRight: doRight }
+) {
+  if (valueToCheck & Dir.Up) doUp();
+  if (valueToCheck & Dir.Right) doRight();
+  if (valueToCheck & Dir.Down) doDown();
+  if (valueToCheck & Dir.Left) doLeft();
+}
 
 function mouseEvListener(ev) {
   {

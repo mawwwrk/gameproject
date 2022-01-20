@@ -113,3 +113,11 @@ export function drawPoint(obj) {
   path.lineTo(compPoints[1].x, compPoints[1].y);
   return path;
 }
+
+export function filterPropsIn(assets) {
+  return (filename) => {
+    return Object.keys(assets)
+      .filter((x) => x.match(`${filename}_`))
+      .map((x) => assets[x]);
+  };
+}
