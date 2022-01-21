@@ -172,15 +172,12 @@ class Hero extends Sprite {
   }
 
   standing() {
-    // console.log(JSON.stringify(this.#input));
     if (this.#input.mouse.button in [1, 2]) this.state = "swing";
     if (this.#input.kb.dir !== Dir.None) this.state = "moving";
   }
 
   moving() {
-    console.log(this.#input.kb.dir & ~Dir[`${this.facing}`]);
     if (this.#input.kb.dir & ~Dir[`${this.facing}`]) this.state = "moving";
-    // this.playSequence(this.states[`${this.animation}${this.facing}`]);
     if (this.#input.mouse.button in [1, 2]) {
       this.state = "swing";
       return;
