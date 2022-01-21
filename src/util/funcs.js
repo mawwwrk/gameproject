@@ -51,7 +51,7 @@ export const resizeProxy = (
         restOfThem.forEach((ea) => {
           let { x, y, scaleX } = ea;
           ea.setPosition(x * mod, y * mod);
-          ea.setScale(scaleX * mod);
+          ea.scale = scaleX * mod;
         });
     }
     return Reflect.set(target, prop, value);

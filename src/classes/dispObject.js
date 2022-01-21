@@ -41,6 +41,9 @@ export class DisplayObject {
     this.shadowOffsetY = 3;
     this.shadowBlur = 3;
 
+    this.frames = [];
+    this.loop = true;
+
     /**
      * @type { DisplayObject|undefined }
      */
@@ -65,13 +68,30 @@ export class DisplayObject {
   get position() {
     return { x: this.x, y: this.y };
   }
-  setScale(scaleX, scaleY = undefined) {
-    if (!scaleY && this.scaleX !== this.scaleY) {
+  get scale() {
+    if (this.scaleX === this.scaleY) {
+      return this.scaleX;
+    } else {
+      return `scaleX: ${this.scaleX}; scaleY: ${this.scaleY}`;
+    }
+  }
+  set scale(value) {
+    if (this.scaleX !== this.scaleY) {
       console.log("scale X and Y are not equal, please supply two values");
       return;
     }
-    this.scaleX = scaleX;
-    this.scaleY = scaleY ? scaleY : scaleX;
+    this.scaleX = value;
+    this.scaleY = value;
+  }
+
+  set acceleration(value) {
+    this.accelerationX = value;
+    this.accelerationY = value;
+  }
+
+  set friction(value) {
+    this.frictionX = value;
+    this.frictionY = value;
   }
   /**
    * @type { (x:number, y:number)=> void }
@@ -174,6 +194,53 @@ export class DisplayObject {
       delete this.diameter;
       delete this.radius;
       this.#circular = false;
+    }
+  }
+}
+
+export class Group extends DisplayObject {
+  constructor(...spritesToGroup) {
+    super();
+
+    spritesToGroup.forEach((sprite) => this.addChild(sprite));
+  }
+
+  addChild(sprite) {
+    if (sprite.parent) {
+      sprite.parent.removeChild(sprite);
+    }
+    sprite.parent = this;
+    this.children.push(sprite);
+
+    this.calculateSize();
+  }
+
+  removeChild(sprite) {
+    if (sprite.parent === this) {
+      this.children.splice(this.children.indexOf(sprite), 1);
+
+      this.calculateSize();
+    } else {
+      throw new Error(`${sprite} is not a child of ${this}`);
+    }
+  }
+
+  calculateSize() {
+    if (this.children.length > 0) {
+      this._newWidth = 0;
+      this._newHeight = 0;
+
+      this.children.forEach((child) => {
+        if (child.x + child.width > this._newWidth) {
+          this._newWidth = child.x + child.width;
+        }
+        if (child.y + child.height > this._newHeight) {
+          this._newHeight = child.y + child.height;
+        }
+      });
+
+      this.width = this._newWidth;
+      this.height = this._newHeight;
     }
   }
 }

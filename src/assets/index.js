@@ -16,9 +16,22 @@ export let assets = {
         sources.forEach((source) => {
           const ext = source.split(".").pop();
           if (ext === "json") this.loadJson(source, reportLoaded);
+          if (["ttf", "otf", "woff"].indexOf(ext) !== -1)
+            this.loadFont(source, reportLoaded);
         });
       })
     );
+  },
+
+  loadFont(source, reportLoaded) {
+    let fontFamily = source.split("/").pop().split(".")[0];
+
+    let newStyle = document.createElement("style");
+    let fontFace = `@font-face {font-family:'${fontFamily}'; src: url(${source});}`;
+    newStyle.appendChild(document.createTextNode(fontFace));
+    document.head.appendChild(newStyle);
+
+    reportLoaded();
   },
   async loadJson(source, reportLoaded) {
     const resp = await fetch(source);
@@ -43,20 +56,36 @@ export let assets = {
     const frameKeys = Object.keys(jsonResponse.frames);
     const imageLoadHandler = () => {
       this[imageSrc] = image;
-      this[filename] = { image: this[imageSrc], frameTags: {} };
-
-      for (let frametag of jsonResponse.meta.frameTags) {
-        let { name: frameTagName, from, to } = frametag,
-          i = from + 0;
-        if (!this[filename].frameTags?.[frameTagName])
-          this[filename].frameTags[frameTagName] = [];
-        do {
-          this[filename].frameTags[frameTagName].push(
-            jsonResponse.frames[frameKeys[i]].frame
-          );
-          i++;
-        } while (i <= to);
-      }
+      this[filename] = {
+        image: this[imageSrc],
+        frameTags: {},
+        animationStates: {},
+        animationFrames: [],
+      };
+      const extractFramesAndStates = () => {
+        for (let frametag of jsonResponse.meta.frameTags) {
+          let { name: frameTagName, from, to } = frametag;
+          this[filename].animationStates[frameTagName] = [from, to];
+        }
+        frameKeys.forEach((frame) => {
+          this[filename].animationFrames.push(jsonResponse.frames[frame]);
+        });
+      };
+      const extractFrametags = () => {
+        for (let frametag of jsonResponse.meta.frameTags) {
+          let { name: frameTagName, from, to } = frametag,
+            i = from + 0;
+          if (!this[filename].frameTags?.[frameTagName])
+            this[filename].frameTags[frameTagName] = [];
+          do {
+            this[filename].frameTags[frameTagName].push(
+              jsonResponse.frames[frameKeys[i]]
+            );
+            i++;
+          } while (i <= to);
+        }
+      };
+      extractFramesAndStates();
       reportLoaded();
     };
     let image = new Image();

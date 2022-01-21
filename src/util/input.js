@@ -9,28 +9,41 @@ export class Key {
     this.isUp = true;
     this.press = press;
     this.release = release;
+    this.test;
+    if (this.code instanceof Array) {
+      let codes = new Set(this.code);
+      this.test = (evcode) => codes.has(evcode);
+    } else {
+      this.test = (evcode) => evcode === this.code;
+    }
 
     window.addEventListener("keydown", this.downHandler.bind(this));
     window.addEventListener("keyup", this.upHandler.bind(this));
   }
 
   downHandler(ev) {
-    if (ev.code === this.code) {
-      this.press();
+    if (this.test(ev.code)) {
+      ev.preventDefault();
       this.isDown = true;
       this.isUp = false;
+      this.press();
     }
-    ev.preventDefault();
   }
   upHandler(ev) {
-    if (ev.code === this.code) {
-      this.release();
+    if (this.test(ev.code)) {
+      ev.preventDefault();
       this.isUp = true;
       this.isDown = false;
+      this.release();
     }
-    ev.preventDefault();
   }
 }
+
+export const keys = (keys, press, release) =>
+  keys.forEach((key) => {
+    new Key(key, press, release);
+  });
+
 /** @type {Object<string, number>} inputDir */
 export const Dir = {
   None: 0,
