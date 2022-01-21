@@ -1,21 +1,23 @@
 import { Rectangle } from ".";
+import { attachAnimation } from "../components";
 import { checkDirection, Dir } from "../util";
 import { DisplayObject } from "./dispObject";
 
 export class Sprite extends DisplayObject {
+  #circular;
   constructor(source, x = 0, y = 0) {
     super();
     Object.assign(this, { x, y });
 
-    this.facing = "";
-    this.state = "";
-    this.currentFrame = 0;
-    this.ticks = 0;
-
     if (source instanceof Image) this.createFromImage(source);
-    if (source.frameTags) this.createFromFrameTags(source);
+    if (source.animationStates) this.createFromTaggedStateFrames(source);
+    // if (source.frameTags) this.createFromFrameTags(source);
     if (source.frame) this.createFromAtlas(source);
     if (source instanceof Array) this.createFromAtlasFrames(source);
+
+    this._currentFrame;
+    this.playing = false;
+    this.loop = true;
   }
   static frameDelay = 3;
 
@@ -54,35 +56,39 @@ export class Sprite extends DisplayObject {
   createFromFrameTags(source) {
     this.source = source.image;
     this.frameTags = source.frameTags;
-    const ref = Object.keys(this.frameTags)[0];
-    this.sourceX = this.frameTags[ref][0].x;
-    this.sourceY = this.frameTags[ref][0].y;
-    this.width = this.sourceWidth = this.frameTags[ref][0].w;
-    this.height = this.sourceHeight = this.frameTags[ref][0].h;
+    const frameTagKeys = Object.keys(this.frameTags)[0];
+    this.sourceX = this.frameTags[frameTagKeys][0].frame.x;
+    this.sourceY = this.frameTags[frameTagKeys][0].frame.y;
+    this.width = this.sourceWidth = this.frameTags[frameTagKeys][0].frame.w;
+    this.height = this.sourceHeight = this.frameTags[frameTagKeys][0].frame.h;
   }
 
-  advanceFrames(frameTagName, startFrame = 0) {
-    const frames = this.frameTags[frameTagName];
-    ++this.currentFrame;
-    this.currentFrame =
-      startFrame + (this.currentFrame % (frames.length - startFrame));
+  createFromTaggedStateFrames(source) {
+    this.source = source.image;
+    this.states = source.animationStates;
+    this.frames = source.animationFrames;
+    this.sourceX = this.frames[0].frame.x;
+    this.sourceY = this.frames[0].frame.y;
+    this.width = this.frames[0].frame.w;
+    this.height = this.frames[0].frame.h;
+    this.sourceWidth = this.frames[0].frame.w;
+    this.sourceHeight = this.frames[0].frame.h;
   }
 
-  showFrame(frameTagName = undefined, frameNumber = 0) {
-    let frame;
-    if (this.frameTags) frame = this.frameTags[frameTagName][frameNumber];
-    if (this.actions) frame = this.frameToShow.frame;
-    this.sourceX = frame.x;
-    this.sourceY = frame.y;
-    this.width = frame.w;
-    this.height = frame.h;
-    this.sourceHeight = frame.h;
-    this.sourceWidth = frame.w;
+  showFrame(frameNumber = 0) {
+    this.sourceX = this.frames[frameNumber].frame.x;
+    this.sourceY = this.frames[frameNumber].frame.y;
+    this.width = this.frames[frameNumber].frame.w;
+    this.height = this.frames[frameNumber].frame.h;
+    this.sourceHeight = this.frames[frameNumber].frame.h;
+    this.sourceWidth = this.frames[frameNumber].frame.w;
+
+    this._currentFrame = frameNumber;
   }
 
-  shouldUpdate() {
-    return this.ticks % Sprite.frameDelay === 0;
-  }
+  // shouldUpdate() {
+  //   return this.ticks % Sprite.frameDelay === 0;
+  // }
 
   draw(ctx) {
     ctx.drawImage(
@@ -99,10 +105,16 @@ export class Sprite extends DisplayObject {
   }
 }
 
-export class Hero extends Sprite {
+const directions = ["Left", "Up", "Right", "Down"];
+
+class Hero extends Sprite {
+  #currentFrame;
+  #state;
+  #input;
   constructor(source, width = 120, height = 120) {
     super(source);
     this.hitbox = new Rectangle(width, height, "none", "none");
+    this.#currentFrame = 0;
     this.addChild(this.hitbox);
     this.putCenter(this.hitbox);
 
@@ -110,44 +122,137 @@ export class Hero extends Sprite {
       x: 120,
       y: 120,
       shadow: true,
-      frictionX: 0.75,
-      frictionY: 0.75,
-      accelerationX: 1.5,
-      accelerationY: 1.5,
+      friction: 0.8,
+      acceleration: 1.5,
     });
 
     this.facing = "Down";
-    this.stillFrames = {
-      [Dir.Up]: "moveShieldUp",
-      [Dir.Right]: "moveShieldRight",
-      [Dir.Down]: "moveShieldDown",
-      [Dir.Left]: "moveShieldLeft",
-    };
-    this.state = "idle";
-    this.actionFrames = {
-      idle: "moveShield",
-      moving: "moveShield",
-    };
+    this.animation = "moveShield";
+
+    attachAnimation(this);
+    this.state = "standing";
   }
 
-  act(input) {
-    this.ticks++;
-    if (input.dir !== Dir.None) this.state = "moving";
-    if (
-      Math.min(this.accelerationX, this.accelerationY) >
-      Math.abs(this.vX) + Math.abs(this.vY)
-    )
-      this.state = "idle";
-    this.facing = input.key;
+  set state(value) {
+    this.switchState(value);
+    this.#state = value;
+  }
+  get state() {
+    return this.#state;
+  }
 
-    const frameTag = this.actionFrames[this.state] + this.facing;
+  switchState(state) {
+    switch (state) {
+      case "standing":
+        this.playing = false;
+        this.animation = "moveShield";
+        this.show(this.states[`${this.animation}${this.facing}`][0]);
+        break;
+      case "moving":
+        this.animation = "moveShield";
+        this.loop = true;
+        this.playSequence(this.states[`${this.animation}${this.facing}`]);
+        break;
+      case "swing":
+        let i = this.#input.mouse.button + 1;
+        console.log(this.#input.mouse.button);
+        this.#input.mouse.button = undefined;
+        if (this.state === "swing") return;
+        this.stopAnimation();
+        this.onComplete = () => {
+          this.loop = true;
+          this.playing = false;
+          this.show(this.states[`moveShield${this.facing}`][0]);
+          this.onComplete = null;
+        };
+        this.loop = false;
+        this.playSequence(this.states[`swing${this.facing}${i}`]);
+        break;
+    }
+  }
 
-    if (this.state === "idle") this.currentFrame = 0;
-    if (this.state === "moving" && this.shouldUpdate())
-      this.advanceFrames(frameTag, 1);
+  standing() {
+    // console.log(JSON.stringify(this.#input));
+    if (this.#input.mouse.button in [1, 2]) this.state = "swing";
+    if (this.#input.kb.dir !== Dir.None) this.state = "moving";
+  }
 
-    this.showFrame(frameTag, this.currentFrame);
-    this.move(input.dir);
+  moving() {
+    console.log(this.#input.kb.dir & ~Dir[`${this.facing}`]);
+    if (this.#input.kb.dir & ~Dir[`${this.facing}`]) this.state = "moving";
+    // this.playSequence(this.states[`${this.animation}${this.facing}`]);
+    if (this.#input.mouse.button in [1, 2]) {
+      this.state = "swing";
+      return;
+    }
+    if (this.#input.kb.dir === Dir.None) {
+      this.state = "standing";
+      return;
+    }
+
+    this.move(this.#input.kb.dir);
+  }
+  swing() {
+    if (this.playing) return;
+    this.state = "standing";
+  }
+  // doAction() {
+  //   if (this.playing) return;
+  //   this.onComplete = () => {
+  //     this.loop = true;
+  //     this.playing = false;
+  //     this.show(this.states[`moveShield${this.facing}`][0]);
+  //     this.onComplete = null;
+  //   };
+  //   this.loop = false;
+  //   this.playing = true;
+  //   this.playAnimation(this.states[`swing${this.facing}1`]);
+  // }
+  // doSwordAttack() {
+  //   this.loop = false;
+  //   this.play();
+  // }
+  // changeState(env) {
+  //   // console.log(env);
+  //   switch (this.state) {
+  //     case "standing":
+  //       this.facing = env.input.key;
+  //       if (env.input.dir !== Dir.None) this.state = "moving";
+  //       if (env.input.mouseaction) {
+  //         this.state = "attackWithSword";
+  //       }
+  //       break;
+  //     case "moving":
+  //       this.facing = env.input.key;
+  //       if (env.input.dir === Dir.None) {
+  //         this.state = "standing";
+  //         this.stop();
+  //       }
+  //       if (env.mouseaction === "click") {
+  //         this.state = "attackingWithSword";
+  //         this.doSwordAttack();
+  //       }
+  //       break;
+  //     case "attackWithSword":
+  //       console.log(this.state);
+  //       if (this.currentFrame === this.frames.length) {
+  //         this.state = "standing";
+  //         this.playing = false;
+  //         this.loop = true;
+  //         this.reset();
+  //       }
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
+  act(env) {
+    // this.changeState(env);
+    // if (this.state === "moving") {
+    //   if (!this.playing) this.play();
+    //   this.move(env.input.dir);
+    // }
+    this.update();
   }
 
   move(dir) {
@@ -157,9 +262,16 @@ export class Hero extends Sprite {
       ifLeft: () => (this.vX -= this.accelerationX),
       ifRight: () => (this.vX += this.accelerationX),
     });
+  }
+
+  update(input) {
+    this.#input = input;
+    this[`${this.state}`]();
     this.vX *= this.frictionX;
     this.vY *= this.frictionY;
     this.x = this.x + this.vX;
     this.y = this.y + this.vY;
   }
 }
+
+export { Hero };

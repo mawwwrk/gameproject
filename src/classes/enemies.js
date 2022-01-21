@@ -1,3 +1,4 @@
+import { attachAnimation } from "../components";
 import { randomInt } from "../util";
 import { Sprite } from "./sprite";
 
@@ -52,27 +53,19 @@ export class Blob extends Enemy {
     });
     this.actions = { idle: [4, 4, 5, 5, 6, 6, 5, 5] };
     this.state = "idle";
-    // console.log(this);
+    this.currentFrame = 0;
+    this.fps = 6;
+    attachAnimation(this);
   }
   #movingRandomly;
   act() {
-    this.ticks++;
-
-    if (this.shouldUpdate()) {
-      if (!this.#movingRandomly)
-        this.#movingRandomly = setTimeout(() => {
-          this.newRandomDestination.call(this);
-          this.#movingRandomly = false;
-        }, randomInt(5000, 10000));
-      ++this.currentFrame;
-      //   if (this.state === "idle" && Math.random() > 0.8) this.shakeAround();
-      //   if (this.state === "idle" && Math.random() > 0.92)
-      this.move();
-      this.currentAction = this.actions[this.state];
-      this.actionFrameLength = this.currentAction.length;
-      this.activeFrame = this.currentFrame % this.actionFrameLength;
-      this.frameToShow = this.frames[this.currentAction[this.activeFrame]];
-      this.showFrame();
-    }
+    if (this.state === "idle" && !this.playing) this.playAnimation([4, 6]);
+    if (!this.#movingRandomly)
+      this.#movingRandomly = setTimeout(() => {
+        this.newRandomDestination.call(this);
+        this.#movingRandomly = false;
+      }, randomInt(5000, 10000));
+    this.move();
+    // this.showFrame(0);
   }
 }

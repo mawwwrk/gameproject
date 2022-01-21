@@ -60,12 +60,11 @@ function setup() {
     function leftPress() {
       input.kb.dir |= Dir.Left;
       hero.facing = "Left";
-          },
+    },
     function leftRelease() {
       input.kb.dir &= ~Dir.Left;
-          }
-        )
-    );
+    }
+  );
 
   up = new Key(
     ["ArrowUp", "KeyW"],
@@ -99,22 +98,6 @@ function setup() {
     }
   );
 
-  const canvas = makeCanvas("app");
-  const stage = new DisplayObject();
-  [stage.width, stage.height] = [canvas.width, canvas.height];
-  proxiedResizeObserver(stage).observe(canvas);
-  const backgroundImage = new Sprite(assets["outdoors.png"]);
-  let enemies = [];
-
-  const blob = new Blob(filterPropsIn(assets)("pinkblob"), 100, 100);
-
-  enemies = [...enemies, blob];
-  const linkSprite = new Hero(assets.link_master, 16, 26);
-
-  linkSprite.setScale(1.5);
-
-  [backgroundImage, linkSprite, blob].forEach((ea) => stage.addChild(ea));
-
   let mousedownTime, mouseaction;
   addEventListener("pointerdown", (ev) => {
     ev.preventDefault();
@@ -126,12 +109,6 @@ function setup() {
     input.mouse.button = undefined;
     mousedownTime = performance.now() - mousedownTime;
   });
-
-  let ctx = canvas.ctx,
-    previousTime = 0,
-    framesDrawn = 0,
-    updateCycles = 0,
-    totalElapsed = 0;
 
   function update() {
     stage.putCenter(backgroundImage);
@@ -154,14 +131,6 @@ function setup() {
     }
     render(stage, canvas);
     ++framesDrawn;
-
-    statsReadout(window.innerWidth, ctx, linkSprite, {
-      timestamp,
-      elapsed,
-      totalElapsed,
-      framesDrawn,
-      updateCycles,
-    });
 
     previousTime = timestamp;
     requestAnimationFrame(runGame);
