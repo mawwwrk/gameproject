@@ -16,8 +16,11 @@ export class Sprite extends DisplayObject {
     if (source instanceof Array) this.createFromAtlasFrames(source);
 
     this._currentFrame;
+    this.shadow = true;
     this.playing = false;
-    this.loop = true;
+    this.loop = false;
+
+    attachAnimation(this);
   }
   static frameDelay = 3;
 
@@ -116,20 +119,19 @@ class Hero extends Sprite {
     this.hitbox = new Rectangle(width, height, "none", "none");
     this.#currentFrame = 0;
     this.addChild(this.hitbox);
-    this.putCenter(this.hitbox);
+    this.putCenter(this.hitbox, 0, 4);
 
     Object.assign(this, {
       x: 120,
       y: 120,
       shadow: true,
       friction: 0.8,
-      acceleration: 1.5,
+      acceleration: 7,
     });
 
     this.facing = "Down";
-    this.animation = "moveShield";
+    this.animation = "shield";
 
-    attachAnimation(this);
     this.state = "standing";
   }
 
@@ -145,41 +147,54 @@ class Hero extends Sprite {
     switch (state) {
       case "standing":
         this.playing = false;
-        this.animation = "moveShield";
+        this.animation = "shield";
         this.show(this.states[`${this.animation}${this.facing}`][0]);
         break;
       case "moving":
-        this.animation = "moveShield";
+        this.animation = "shield";
         this.loop = true;
         this.playSequence(this.states[`${this.animation}${this.facing}`]);
         break;
-      case "swing":
-        let i = this.#input.mouse.button + 1;
-        console.log(this.#input.mouse.button);
+      case "attack":
+        // console.log(this.#input.mouse.button);
+        if (this.#input.mouse.button === 2) {
+          if (Math.abs(this.#input.mouse.atan2) > 2) {
+            this.facing = "Left";
+          } else if (Math.abs(this.#input.mouse.atan2) < 1) {
+            this.facing = "Right";
+          } else {
+            this.#input.mouse.atan2 < 0
+              ? (this.facing = "Up")
+              : (this.facing = "Down");
+          }
+        }
+        const attack = ["swing", "stab", "bow"][this.#input.mouse.button];
         this.#input.mouse.button = undefined;
-        if (this.state === "swing") return;
+        if (this.state === "attack") return;
         this.stopAnimation();
+        this.fps = 24;
         this.onComplete = () => {
           this.loop = true;
           this.playing = false;
-          this.show(this.states[`moveShield${this.facing}`][0]);
+          this.fps = 12;
+          this.show(this.states[`shield${this.facing}`][0]);
           this.onComplete = null;
         };
         this.loop = false;
-        this.playSequence(this.states[`swing${this.facing}${i}`]);
+        this.playSequence(this.states[`${attack}${this.facing}`]);
         break;
     }
   }
 
   standing() {
-    if (this.#input.mouse.button in [1, 2]) this.state = "swing";
+    if (this.#input.mouse.button in [1, 2, 3]) this.state = "attack";
     if (this.#input.kb.dir !== Dir.None) this.state = "moving";
   }
 
   moving() {
     if (this.#input.kb.dir & ~Dir[`${this.facing}`]) this.state = "moving";
-    if (this.#input.mouse.button in [1, 2]) {
-      this.state = "swing";
+    if (this.#input.mouse.button in [1, 2, 3]) {
+      this.state = "attack";
       return;
     }
     if (this.#input.kb.dir === Dir.None) {
@@ -189,7 +204,7 @@ class Hero extends Sprite {
 
     this.move(this.#input.kb.dir);
   }
-  swing() {
+  attack() {
     if (this.playing) return;
     this.state = "standing";
   }
@@ -254,10 +269,10 @@ class Hero extends Sprite {
 
   move(dir) {
     checkDirection(dir, {
-      ifUp: () => (this.vY -= this.accelerationY),
-      ifDown: () => (this.vY += this.accelerationY),
-      ifLeft: () => (this.vX -= this.accelerationX),
-      ifRight: () => (this.vX += this.accelerationX),
+      ifUp: () => (this.y /* vY */ -= this.accelerationY),
+      ifDown: () => (this.y /* vY */ += this.accelerationY),
+      ifLeft: () => (this.x /* vX */ -= this.accelerationX),
+      ifRight: () => (this.x /* vX */ += this.accelerationX),
     });
   }
 

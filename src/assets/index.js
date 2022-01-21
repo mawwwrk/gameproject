@@ -1,3 +1,5 @@
+import { makeSound } from "../classes/sound";
+
 export let assets = {
   toLoad: 0,
   loaded: 0,
@@ -18,6 +20,7 @@ export let assets = {
           if (ext === "json") this.loadJson(source, reportLoaded);
           if (["ttf", "otf", "woff"].indexOf(ext) !== -1)
             this.loadFont(source, reportLoaded);
+          if (ext === "mp3") this.loadAudio(source, reportLoaded);
         });
       })
     );
@@ -32,6 +35,11 @@ export let assets = {
     document.head.appendChild(newStyle);
 
     reportLoaded();
+  },
+  loadAudio(source, reportLoaded) {
+    let sound = makeSound(source, reportLoaded);
+    sound.name = source;
+    this[sound.name] = sound;
   },
   async loadJson(source, reportLoaded) {
     const resp = await fetch(source);

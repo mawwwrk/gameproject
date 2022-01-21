@@ -17,8 +17,8 @@ export class DisplayObject {
     this.rotation = 0;
     this.alpha = 1;
     this.visible = true;
-    this.scaleX = 1;
-    this.scaleY = 1;
+    this.scaleX = 1.8;
+    this.scaleY = 1.8;
 
     //? velocity and acceleration
     this.vX = 0;
@@ -53,6 +53,9 @@ export class DisplayObject {
      */
     this.children = [];
   }
+
+  //! setting scale
+
   get halfWidth() {
     return this.width * 0.5;
   }

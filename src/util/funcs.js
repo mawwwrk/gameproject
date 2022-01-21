@@ -1,4 +1,4 @@
-import { DisplayObject } from "../classes";
+import { DisplayObject, Rectangle, Sprite } from "../classes";
 
 export const proxiedResizeObserver = (/** @type {DisplayObject} */ alias) =>
   new ResizeObserver(resizeCallback(resizeProxy(alias)));
@@ -120,4 +120,77 @@ export function filterPropsIn(assets) {
       .filter((x) => x.match(`${filename}_`))
       .map((x) => assets[x]);
   };
+}
+
+export const projectile =
+  (stage, assets) =>
+  (source, height = 2, width = 8) => {
+    const projectile = new Sprite(source);
+    stage.addChild(projectile);
+    let { x, y } = projectile.frames[projectile.states.arrowRight[0]].frame;
+    projectile.sourceX = x;
+    projectile.sourceY = y;
+    projectile.hitbox = new Rectangle(height, width, "none", "none");
+    projectile.addChild(projectile.hitbox);
+    projectile.putCenter(projectile.hitbox);
+    return (props) => Object.assign(projectile, props);
+  };
+
+export function wait(delay) {
+  return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
+export function shoot(
+  shooter,
+  angle,
+  offsetFromCenter,
+  projectileSpeed,
+  projectileArray,
+  projectileSprite
+) {
+  //Make a new sprite using the user-supplied `bulletSprite` function
+  let projectile = projectileSprite(); //Set the bullet's start point
+  projectile.rotation = angle;
+  projectile.x =
+    shooter.centerX - projectile.halfWidth + offsetFromCenter * Math.cos(angle);
+  projectile.y =
+    shooter.centerY -
+    projectile.halfHeight +
+    offsetFromCenter * Math.sin(angle); //Set the bullet's velocity
+
+  projectile.vx = Math.cos(angle) * projectileSpeed;
+  projectile.vy = Math.sin(angle) * projectileSpeed; //Push the bullet into the `bulletArray`
+
+  projectileArray.push(projectile);
+}
+
+export function remove(...spritesToRemove) {
+  spritesToRemove.forEach((sprite) => {
+    sprite.parent.removeChild(sprite);
+  });
+}
+
+export function outsideBounds(sprite, bounds, extra = undefined) {
+  let x = bounds.x,
+    y = bounds.y,
+    width = bounds.width,
+    height = bounds.height;
+
+  let collision;
+
+  if (sprite.x < x - sprite.width) {
+    collision = "left";
+  }
+  if (sprite.y < y - sprite.height) {
+    collision = "top";
+  }
+  if (sprite.x > width) {
+    collision = "right";
+  }
+  if (sprite.y > height) {
+    collision = "bottom";
+  }
+  if (collision && extra) extra(collision);
+
+  return collision;
 }

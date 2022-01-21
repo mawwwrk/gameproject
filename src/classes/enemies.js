@@ -43,12 +43,11 @@ export class Blob extends Enemy {
       x: x,
       y: y,
       shadow: true,
-      scaleX: 2,
-      scaleY: 2,
       accelerationX: 1.5,
       accelerationY: 1.5,
       frictionX: 0.75,
       frictionY: 0.75,
+      loop: true,
       mass: 1,
     });
     this.actions = { idle: [4, 4, 5, 5, 6, 6, 5, 5] };

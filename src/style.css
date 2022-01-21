@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
 :root {
-  --canvas-width: 98vw;
+  --canvas-width: clamp(720px, 98vw, 1920px);
   --canvas-height: calc(var(--canvas-width) * 625e-3);
 
   font-family: Ubuntu, sans-serif;
