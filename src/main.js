@@ -2,9 +2,11 @@ import "https://cdn.skypack.dev/normalizecss";
 import { assets } from "./assets";
 import {
   Blob,
+  Circle,
   DisplayObject,
   Group,
   Hero,
+  Rectangle,
   Sprite,
   TextSprite,
 } from "./classes";
@@ -58,14 +60,14 @@ function setup() {
   // music.play();
 
   const filler = document.querySelector(".modal");
-  filler.addEventListener("click", () => {
-    // music.pause();
-    filler.classList.add("hidden");
-    runGame();
-  });
+  // filler.addEventListener("click", () => {
+  // music.pause();
+  filler.classList.add("hidden");
+  // runGame();
+  // });
 
   const backgroundImage = new Sprite(assets["outdoors.png"]);
-  backgroundImage.scale = 1;
+  backgroundImage.visible = false;
 
   const hero = new Hero(assets.customLink, 16, 26);
   // let mult = 1;
@@ -136,6 +138,8 @@ function setup() {
   // stage.addChild(gameOverScene);
 
   // gameOverScene.visible = true;
+
+  const vkey = new Key("KeyV", () => console.log(hero.vX, hero.vY));
 
   console.log(stage.children);
 
@@ -225,17 +229,19 @@ function setup() {
     contain(enemyGrp, stage.localBounds);
     contain(hero, stage.localBounds);
 
-    let heroHit = hit(
-      hero.attackRange,
-      enemies,
-      true,
-      true,
-      null,
-      (str, obj) => {
-        if (hero.state === "attack") obj.hp -= 2;
-        console.log(obj);
+    let heroHit = hit(hero, enemies, true, true, null, (str, obj) => {
+      if (hero.state === "attack") {
+        hero.proxy.fillStyle = "rgba(0,200,0, 50%)";
+        obj.proxy.fillStyle = "rgba(200,0,0,50%)";
+
+        wait(3000).then(() => {
+          hero.proxy.fillStyle = "none";
+          obj.proxy.fillStyle = "none";
+        });
+        // obj.hp -= 2;sss
+        // console.log(obj);
       }
-    );
+    });
 
     enemies = enemies.filter((enemy) => {
       if (enemy.hp < 1) {
@@ -265,9 +271,32 @@ function setup() {
 
     ++updateCycles;
   }
+  stage.children.forEach((sprite) => {
+    let proxy,
+      { centreX, centreY, height, width, radius, diameter } = sprite;
 
-  // runGame();
-  render(stage, canvas);
+    if (sprite.circular) {
+      proxy = new Circle(diameter, "none", "black", 2, centreX, centreY);
+    } else {
+      proxy = new Rectangle(
+        width,
+        height,
+        "none",
+        "black",
+        2,
+        centreX,
+        centreY
+      );
+    }
+    // proxy
+    sprite.addChild(proxy);
+    sprite.proxy = proxy;
+    // sprite.putCenter(proxy);
+
+    // ? ctx.arc(centreX, centreY, radius, 0, Math.PI * 2)
+    // : ctx.rect(centreX, centreY, width, height);
+  });
+  // render(stage, canvas);
 
   function runGame(timestamp) {
     if (!timestamp) timestamp = 0;

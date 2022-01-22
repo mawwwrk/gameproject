@@ -129,6 +129,10 @@ export const projectile =
     const projectile = new Sprite(source);
     stage.addChild(projectile);
     let { x, y } = projectile.frames[projectile.states.arrowRight[0]].frame;
+    projectile.broken = [
+      projectile.states.arrowRight[1],
+      projectile.states.arrowRight[2],
+    ];
     projectile.sourceX = x;
     projectile.sourceY = y;
     projectile.hitbox = new Rectangle(height, width, "none", "none");
@@ -158,7 +162,7 @@ export function shoot(
     shooter.centerY -
     projectile.halfHeight +
     offsetFromCenter * Math.sin(angle); //Set the bullet's velocity
-
+  projectile.friction = 0.975;
   projectile.vx = Math.cos(angle) * projectileSpeed;
   projectile.vy = Math.sin(angle) * projectileSpeed; //Push the bullet into the `bulletArray`
 

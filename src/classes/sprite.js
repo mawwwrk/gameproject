@@ -132,8 +132,8 @@ class Hero extends Sprite {
       x: 120,
       y: 120,
       shadow: true,
-      friction: 0.8,
-      acceleration: 5,
+      friction: 0.72,
+      acceleration: 3,
     });
 
     this.facing = "Down";
@@ -165,7 +165,6 @@ class Hero extends Sprite {
         break;
       case "attack":
         // console.log(this.#input.mouse.button);
-
         if (this.#input.mouse.button === 2) {
           if (Math.abs(this.#input.mouse.atan2) > 2) {
             this.facing = "Left";
@@ -177,7 +176,10 @@ class Hero extends Sprite {
               : (this.facing = "Down");
           }
         }
-        if (this.state === "moving" && this.#input.mouse.button === 0) {
+        if (
+          this.vX * this.vY > this.accelerationX * this.accelerationYd &&
+          this.#input.mouse.button === 0
+        ) {
           attack = "dash";
         } else {
           attack = ["stab", ["swipe", "swing"][randomInt(0, 1)], "bow"][
@@ -220,8 +222,11 @@ class Hero extends Sprite {
     this.move(this.#input.kb.dir);
   }
   attack() {
-    if (this.playing) return;
-    this.state = "standing";
+    if (this.playing) {
+      return;
+    } else {
+      this.state = "standing";
+    }
   }
   // doAction() {
   //   if (this.playing) return;
@@ -284,10 +289,10 @@ class Hero extends Sprite {
 
   move(dir) {
     checkDirection(dir, {
-      ifUp: () => (this.y /* vY */ -= this.accelerationY),
-      ifDown: () => (this.y /* vY */ += this.accelerationY),
-      ifLeft: () => (this.x /* vX */ -= this.accelerationX),
-      ifRight: () => (this.x /* vX */ += this.accelerationX),
+      ifUp: () => (this./* y  */ vY -= this.accelerationY),
+      ifDown: () => (this./* y  */ vY += this.accelerationY),
+      ifLeft: () => (this./* x  */ vX -= this.accelerationX),
+      ifRight: () => (this./* x  */ vX += this.accelerationX),
     });
   }
 
