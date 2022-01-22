@@ -6,7 +6,7 @@
 // sound.pan = -0.5;
 // sound.playFrom(15);
 
-let actx = new AudioContext();
+// let actx = new AudioContext();
 
 //The sound class
 class Sound {
@@ -124,39 +124,39 @@ class Sound {
   }
 }
 
-export function makeSound(source, loadHandler) {
-  return new Sound(source, loadHandler);
-}
-function setupMusic() {
-  //Make the music loop
-  music.loop = true; //Set the pan
+// export function makeSound(source, loadHandler) {
+//   return new Sound(source, loadHandler);
+// }
+// function setupMusic() {
+//   //Make the music loop
+//   music.loop = true; //Set the pan
 
-  music.pan = -0.8; //Set the volume
+//   music.pan = -0.8; //Set the volume
 
-  music.volume = 0.3; //Capture keyboard key events
+//   music.volume = 0.3; //Capture keyboard key events
 
-  let a = keyboard(65),
-    b = keyboard(66),
-    c = keyboard(67),
-    d = keyboard(68); //Use the key `press` methods to control the sound //Play the music with the `a` key
+//   let a = keyboard(65),
+//     b = keyboard(66),
+//     c = keyboard(67),
+//     d = keyboard(68); //Use the key `press` methods to control the sound //Play the music with the `a` key
 
-  a.press = () => {
-    if (!music.playing) music.play();
-    console.log("music playing");
-  }; //Pause the music with the `b` key
+//   a.press = () => {
+//     if (!music.playing) music.play();
+//     console.log("music playing");
+//   }; //Pause the music with the `b` key
 
-  b.press = () => {
-    music.pause();
-    console.log("music paused");
-  }; //Restart the music with the `c` key
+//   b.press = () => {
+//     music.pause();
+//     console.log("music paused");
+//   }; //Restart the music with the `c` key
 
-  c.press = () => {
-    music.restart();
-    console.log("music restarted");
-  }; //Play the music from the 10 second mark //with the `d` key
+//   c.press = () => {
+//     music.restart();
+//     console.log("music restarted");
+//   }; //Play the music from the 10 second mark //with the `d` key
 
-  d.press = () => {
-    music.playFrom(10);
-    console.log("music start point changed");
-  };
-}
+//   d.press = () => {
+//     music.playFrom(10);
+//     console.log("music start point changed");
+//   };
+// }

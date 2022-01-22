@@ -102,8 +102,9 @@ function setup() {
       spacing * i + xOffset,
       randomInt(0, canvas.height - 20)
     );
-    //Give the enemy a random y position
-
+    //Give the enemy a random y position
+    blob.circular = true;
+    blob.radius = 26;
     enemies = [...enemies, blob];
     stage.addChild(blob);
   }
