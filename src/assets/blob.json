@@ -1,0 +1,176 @@
+{
+	"frames": {
+		"pinkblob_01.png": {
+			"frame": {
+				"x": 2,
+				"y": 2,
+				"w": 8,
+				"h": 8
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 8,
+				"h": 8
+			},
+			"sourceSize": {
+				"w": 8,
+				"h": 8
+			}
+		},
+		"pinkblob_02.png": {
+			"frame": {
+				"x": 12,
+				"y": 2,
+				"w": 12,
+				"h": 12
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 12,
+				"h": 12
+			},
+			"sourceSize": {
+				"w": 12,
+				"h": 12
+			}
+		},
+		"pinkblob_03.png": {
+			"frame": {
+				"x": 18,
+				"y": 19,
+				"w": 16,
+				"h": 16
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 16,
+				"h": 16
+			},
+			"sourceSize": {
+				"w": 16,
+				"h": 16
+			}
+		},
+		"pinkblob_04.png": {
+			"frame": {
+				"x": 44,
+				"y": 2,
+				"w": 14,
+				"h": 15
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 14,
+				"h": 15
+			},
+			"sourceSize": {
+				"w": 14,
+				"h": 15
+			}
+		},
+		"pinkblob_05.png": {
+			"frame": {
+				"x": 26,
+				"y": 2,
+				"w": 16,
+				"h": 14
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 16,
+				"h": 14
+			},
+			"sourceSize": {
+				"w": 16,
+				"h": 14
+			}
+		},
+		"pinkblob_06.png": {
+			"frame": {
+				"x": 2,
+				"y": 19,
+				"w": 14,
+				"h": 15
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 14,
+				"h": 15
+			},
+			"sourceSize": {
+				"w": 14,
+				"h": 15
+			}
+		},
+		"pinkblob_07.png": {
+			"frame": {
+				"x": 36,
+				"y": 19,
+				"w": 12,
+				"h": 16
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 12,
+				"h": 16
+			},
+			"sourceSize": {
+				"w": 12,
+				"h": 16
+			}
+		},
+		"pinkblob_08.png": {
+			"frame": {
+				"x": 50,
+				"y": 19,
+				"w": 8,
+				"h": 21
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 8,
+				"h": 21
+			},
+			"sourceSize": {
+				"w": 8,
+				"h": 21
+			}
+		}
+	},
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "1.0",
+		"image": "src/assets/blob.png",
+		"format": "RGBA8888",
+		"size": {
+			"w": 60,
+			"h": 42
+		},
+		"scale": "1",
+		"smartupdate": "$TexturePacker:SmartUpdate:57621366437f1c06e93fd5c1780b1000:088e5f3d4d7d33a857b1b90f80c16ac5:3fbb51b8b357ce384570c5db1795a0e0$"
+	}
+}
