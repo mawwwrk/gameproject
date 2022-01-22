@@ -285,6 +285,122 @@ export function movingCircleCollision(c1, c2, global = false) {
   return hit;
 }
 
+export function circleRectangleCollision(c1, r1, bounce, global = false) {
+  let region, collision, c1x, c1y, r1x, r1y; //Use either global or local coordinates
+
+  if (global) {
+    c1x = c1.gx;
+    c1y = c1.gy;
+    r1x = r1.gx;
+    r1y = r1.gy;
+  } else {
+    c1x = c1.x;
+    c1y = c1.y;
+    r1x = r1.x;
+    r1y = r1.y;
+  } //Is the circle above the rectangle's top edge?
+
+  if (c1y < r1y - r1.halfHeight) {
+    //If it is, we need to check whether it's in the
+    //top left, top center, or top right.
+    //(Increasing the size of the region by 2 pixels slightly weights
+    //the text in favor of a rectangle vs. rectangle collision test.
+    //This gives a more natural-looking result with corner collisions
+    //when physics calculations are added)
+    if (c1x < r1x - 1 - r1.halfWidth) {
+      region = "topLeft";
+    } else if (c1x > r1x + 1 + r1.halfWidth) {
+      region = "topRight";
+    } else {
+      region = "topMiddle";
+    }
+  } //The circle isn't above the top edge, so it might be //below the bottom edge
+  else if (c1y > r1y + r1.halfHeight) {
+    //If it is, we need to check whether it's in the bottom left,
+    //bottom center, or bottom right
+    if (c1x < r1x - 1 - r1.halfWidth) {
+      region = "bottomLeft";
+    } else if (c1x > r1x + 1 + r1.halfWidth) {
+      region = "bottomRight";
+    } else {
+      region = "bottomMiddle";
+    }
+  } //The circle isn't above the top edge or below the bottom edge, //so it must be on the left or right side
+  else {
+    if (c1x < r1x - r1.halfWidth) {
+      region = "leftMiddle";
+    } else {
+      region = "rightMiddle";
+    }
+  } //Is the circle touching the flat sides //of the rectangle?
+
+  if (
+    region === "topMiddle" ||
+    region === "bottomMiddle" ||
+    region === "leftMiddle" ||
+    region === "rightMiddle"
+  ) {
+    //Yes, it is, so do a standard rectangle vs. rectangle collision test
+    collision = hitTestRectangle(c1, r1, global);
+  } //The circle is touching one of the corners, so do a //circle vs. point collision test
+  else {
+    let point = {};
+
+    switch (region) {
+      case "topLeft":
+        point.x = r1x;
+        point.y = r1y;
+        break;
+
+      case "topRight":
+        point.x = r1x + r1.width;
+        point.y = r1y;
+        break;
+
+      case "bottomLeft":
+        point.x = r1x;
+        point.y = r1y + r1.height;
+        break;
+
+      case "bottomRight":
+        point.x = r1x + r1.width;
+        point.y = r1y + r1.height;
+    } //Check for a collision between the circle and the point
+
+    collision = hitTestCirclePoint(c1, point, global);
+    collision = rectangleCollision(c1, r1, bounce, global);
+    collision = circlePointCollision(c1, point, bounce, global);
+  } //Return the result of the collision. //The return value will be `undefined` if there's no collision
+
+  if (collision) {
+    return region;
+  } else {
+    return collision;
+  }
+}
+export function hitTestCirclePoint(c1, point, global = false) {
+  point.diameter = 1;
+  point.radius = 0.5;
+  point.centerX = point.x;
+  point.centerY = point.y;
+  point.gx = point.x;
+  point.gy = point.y;
+  return hitTestCircle(c1, point, global);
+}
+export function circlePointCollision(
+  c1,
+  point,
+  bounce = false,
+  global = false
+) {
+  point.diameter = 1;
+  point.radius = 0.5;
+  point.centerX = point.x;
+  point.centerY = point.y;
+  point.gx = point.x;
+  point.gy = point.y;
+  return circleCollision(c1, point, bounce, global);
+}
 export function hitTestCircleRectangle(c1, r1, global = false) {
   let region, collision, c1x, c1y, r1x, r1y; //Use either global or local coordinates
 
@@ -517,4 +633,39 @@ export function hit(
       return circleRectangleCollision(a, b, bounce, global);
     }
   }
+}
+function bounceOffSurface(o, s) {
+  let dp1,
+    dp2,
+    p1 = {},
+    p2 = {},
+    bounce = {},
+    mass = o.mass || 1; //1. Calculate the collision surface's properties //Find the surface vector's left normal
+
+  s.lx = s.y;
+  s.ly = -s.x; //Find its magnitude
+
+  s.magnitude = Math.sqrt(s.x * s.x + s.y * s.y); //Find its normalized values
+
+  s.dx = s.x / s.magnitude;
+  s.dy = s.y / s.magnitude; //2. Bounce the object (o) off the surface (s) //Find the dot product between the object and the surface
+
+  dp1 = o.vx * s.dx + o.vy * s.dy; //Project the object's velocity onto the collision surface
+
+  p1.vx = dp1 * s.dx;
+  p1.vy = dp1 * s.dy; //Find the dot product of the object and the surface's left normal (s.lx and s.ly)
+
+  dp2 = o.vx * (s.lx / s.magnitude) + o.vy * (s.ly / s.magnitude); //Project the object's velocity onto the surface's left normal
+
+  p2.vx = dp2 * (s.lx / s.magnitude);
+  p2.vy = dp2 * (s.ly / s.magnitude); //Reverse the projection on the surface's left normal
+
+  p2.vx *= -1;
+  p2.vy *= -1; //Add up the projections to create a new bounce vector
+
+  bounce.x = p1.vx + p2.vx;
+  bounce.y = p1.vy + p2.vy; //Assign the bounce vector to the object's velocity //with optional mass to dampen the effect
+
+  o.vx = bounce.x / mass;
+  o.vy = bounce.y / mass;
 }

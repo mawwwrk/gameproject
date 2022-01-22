@@ -17,8 +17,8 @@ export class DisplayObject {
     this.rotation = 0;
     this.alpha = 1;
     this.visible = true;
-    this.scaleX = 1.8;
-    this.scaleY = 1.8;
+    this.scaleX = 1;
+    this.scaleY = 1;
 
     //? velocity and acceleration
     this.vX = 0;

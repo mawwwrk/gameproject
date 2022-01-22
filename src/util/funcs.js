@@ -33,26 +33,27 @@ export const resizeProxy = (
    * @param {any} value
    */
   set(target, prop, value) {
-    const origWidth = target.width;
-    if (prop === "width" || prop === "height") {
-      alias[prop] = value;
-    }
+    const origHeight = target.height;
     if (prop === "width") {
+      alias[prop] = value;
+    } else if (prop === "height") {
+      alias[prop] = value;
       const childSprites = alias.children;
       const background = childSprites[0];
+
       let [, ...restOfThem] = childSprites;
-      let mod = value / origWidth;
 
-      const aspectRatio = background.height / background.width;
-      background.width = alias.width;
-      background.height = alias.width * aspectRatio;
+      let mod = value / origHeight;
 
-      if (origWidth !== 256)
-        restOfThem.forEach((ea) => {
-          let { x, y, scaleX } = ea;
-          ea.setPosition(x * mod, y * mod);
-          ea.scale = scaleX * mod;
-        });
+      const aspectRatio = background.width / background.height;
+      background.height = alias.height;
+      background.width = alias.height * aspectRatio;
+
+      restOfThem.forEach((ea) => {
+        let { x, y } = ea;
+        ea.setPosition(x * mod, y * mod);
+        ea.scale *= mod;
+      });
     }
     return Reflect.set(target, prop, value);
   },

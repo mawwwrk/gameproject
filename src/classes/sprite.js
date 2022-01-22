@@ -1,6 +1,6 @@
-import { Rectangle } from ".";
+import { Circle, Rectangle } from ".";
 import { attachAnimation } from "../components";
-import { checkDirection, Dir } from "../util";
+import { checkDirection, Dir, randomInt } from "../util";
 import { DisplayObject } from "./dispObject";
 
 export class Sprite extends DisplayObject {
@@ -17,6 +17,7 @@ export class Sprite extends DisplayObject {
 
     this._currentFrame;
     this.shadow = true;
+    this.shadowColor = "rbga(20,20,20,80%)";
     this.playing = false;
     this.loop = false;
 
@@ -121,12 +122,18 @@ class Hero extends Sprite {
     this.addChild(this.hitbox);
     this.putCenter(this.hitbox, 0, 4);
 
+    this.attackRange = new Circle(40, "none", "none", 3);
+    this.addChild(this.attackRange);
+    this.putCenter(this.attackRange);
+
+    // console.log(this.attackRange);
+
     Object.assign(this, {
       x: 120,
       y: 120,
       shadow: true,
       friction: 0.8,
-      acceleration: 7,
+      acceleration: 5,
     });
 
     this.facing = "Down";
@@ -144,6 +151,7 @@ class Hero extends Sprite {
   }
 
   switchState(state) {
+    let attack;
     switch (state) {
       case "standing":
         this.playing = false;
@@ -157,6 +165,7 @@ class Hero extends Sprite {
         break;
       case "attack":
         // console.log(this.#input.mouse.button);
+
         if (this.#input.mouse.button === 2) {
           if (Math.abs(this.#input.mouse.atan2) > 2) {
             this.facing = "Left";
@@ -168,7 +177,13 @@ class Hero extends Sprite {
               : (this.facing = "Down");
           }
         }
-        const attack = ["swing", "stab", "bow"][this.#input.mouse.button];
+        if (this.state === "moving" && this.#input.mouse.button === 0) {
+          attack = "dash";
+        } else {
+          attack = ["stab", ["swipe", "swing"][randomInt(0, 1)], "bow"][
+            this.#input.mouse.button
+          ];
+        }
         this.#input.mouse.button = undefined;
         if (this.state === "attack") return;
         this.stopAnimation();

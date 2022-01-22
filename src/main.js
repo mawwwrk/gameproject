@@ -5,7 +5,6 @@ import {
   DisplayObject,
   Group,
   Hero,
-  Rectangle,
   Sprite,
   TextSprite,
 } from "./classes";
@@ -37,7 +36,7 @@ assets
     "src/assets/ammo.json",
     "src/assets/customLink.json",
     "src/assets/silver.ttf",
-    "src/assets/music.mp3",
+    // "src/assets/music.mp3",
   ])
   .then(() => setup());
 function setup() {
@@ -54,18 +53,43 @@ function setup() {
   [stage.width, stage.height] = [canvas.width, canvas.height];
   proxiedResizeObserver(stage).observe(canvas);
 
-  const music = assets["src/assets/music.mp3"];
+  // const music = assets["src/assets/music.mp3"];
+
   // music.play();
+
+  const filler = document.querySelector(".modal");
+  filler.addEventListener("click", () => {
+    // music.pause();
+    filler.classList.add("hidden");
+    runGame();
+  });
 
   const backgroundImage = new Sprite(assets["outdoors.png"]);
   backgroundImage.scale = 1;
 
   const hero = new Hero(assets.customLink, 16, 26);
+  // let mult = 1;
+  // let point = [hero.attackRange.centerX, hero.attackRange.centerY];
+  // hero.attackRange.draw = function draw() {
+  //   ctx.beginPath();
+  //   ctx.strokeStyle = "pink";
+  //   ctx.moveTo(hero.pivotX, hero.pivotY);
+  //   ctx.lineTo(Math.sin(mult * Math.PI + 1), Math.cos(mult * Math.PI - 1));
+  //   ctx.arc(
+  //     hero.pivotX,
+  //     hero.pivotY,
+  //     30,
+  //     mult * Math.PI + 0.75,
+  //     mult * Math.PI - 0.75,
+  //     true
+  //   );
+  //   ctx.stroke();
+  // };
 
   let message = new TextSprite("", "12px puzzler", "black", 8, 8);
   const groupObj = new Group();
 
-  backgroundImage.addChild(new Rectangle(200, 100, "white", "none", 0, 20, 20));
+  // backgroundImage.addChild(new Rectangle(200, 100, "white", "none", 0, 20, 20));
   [backgroundImage, hero, groupObj, message].forEach((ea) =>
     stage.addChild(ea)
   );
@@ -83,6 +107,8 @@ function setup() {
     enemies = [...enemies, blob];
     stage.addChild(blob);
   }
+
+  const enemyGrp = new Group(enemies);
 
   let arrows = [];
   const arrow = () =>
@@ -110,55 +136,57 @@ function setup() {
 
   // gameOverScene.visible = true;
 
-  let input = { kb: {}, mouse: {} },
-    left,
-    up,
-    right,
-    down;
-  input.kb.dir = Dir.None;
+  console.log(stage.children);
 
-  left = new Key(
-    ["ArrowLeft", "KeyA"],
-    function leftPress() {
-      input.kb.dir |= Dir.Left;
-      hero.facing = "Left";
-    },
-    function leftRelease() {
-      input.kb.dir &= ~Dir.Left;
-    }
-  );
+  let input = {
+    kb: {
+      dir: Dir.None,
 
-  up = new Key(
-    ["ArrowUp", "KeyW"],
-    function upPress() {
-      input.kb.dir |= Dir.Up;
-      hero.facing = "Up";
-    },
-    function upRelease() {
-      input.kb.dir &= ~Dir.Up;
-    }
-  );
+      left: new Key(
+        ["ArrowLeft", "KeyA"],
+        function leftPress() {
+          input.kb.dir |= Dir.Left;
+          hero.facing = "Left";
+        },
+        function leftRelease() {
+          input.kb.dir &= ~Dir.Left;
+        }
+      ),
 
-  right = new Key(
-    ["ArrowRight", "KeyD"],
-    function rightPress() {
-      input.kb.dir |= Dir.Right;
-      hero.facing = "Right";
+      up: new Key(
+        ["ArrowUp", "KeyW"],
+        function upPress() {
+          input.kb.dir |= Dir.Up;
+          hero.facing = "Up";
+        },
+        function upRelease() {
+          input.kb.dir &= ~Dir.Up;
+        }
+      ),
+
+      right: new Key(
+        ["ArrowRight", "KeyD"],
+        function rightPress() {
+          input.kb.dir |= Dir.Right;
+          hero.facing = "Right";
+        },
+        function rightRelease() {
+          input.kb.dir &= ~Dir.Right;
+        }
+      ),
+      down: new Key(
+        ["ArrowDown", "KeyS"],
+        function downPress() {
+          input.kb.dir |= Dir.Down;
+          hero.facing = "Down";
+        },
+        function downRelease() {
+          input.kb.dir &= ~Dir.Down;
+        }
+      ),
     },
-    function rightRelease() {
-      input.kb.dir &= ~Dir.Right;
-    }
-  );
-  down = new Key(
-    ["ArrowDown", "KeyS"],
-    function downPress() {
-      input.kb.dir |= Dir.Down;
-      hero.facing = "Down";
-    },
-    function downRelease() {
-      input.kb.dir &= ~Dir.Down;
-    }
-  );
+    mouse: {},
+  };
 
   const pointer = makePointer(canvas);
   pointer.press = (event) => {
@@ -182,8 +210,6 @@ function setup() {
     input.mouse.button = undefined;
   };
 
-  let mousedownTime, mouseaction;
-
   const preventDefaultKeys = new Set(["Space"]);
   addEventListener("contextmenu", (ev) => ev.preventDefault());
   addEventListener("keypress", (ev) => {
@@ -194,18 +220,42 @@ function setup() {
     stage.putCenter(backgroundImage);
     hero.update(input);
     enemies.forEach((ea) => ea.act());
-    /* const hitBoxCollision = */ contain(hero, stage.localBounds);
+    /* const hitBoxCollision = */
+    contain(enemyGrp, stage.localBounds);
+    contain(hero, stage.localBounds);
 
+    let heroHit = hit(
+      hero.attackRange,
+      enemies,
+      true,
+      true,
+      null,
+      (str, obj) => {
+        if (hero.state === "attack") obj.hp -= 2;
+        console.log(obj);
+      }
+    );
+
+    enemies = enemies.filter((enemy) => {
+      if (enemy.hp < 1) {
+        remove(enemy);
+        return false;
+      }
+      return true;
+    });
     arrows = arrows.filter((arrow) => {
+      let didhit = hit(arrow, enemies, true, true, null, (str, obj) => {
+        obj.hp -= 1;
+        console.log(obj);
+      });
+      didhit ? console.log(didhit) : 1;
       arrow.x += arrow.vx;
       arrow.y += arrow.vy;
 
       let collision = outsideBounds(arrow, stage.localBounds);
-      let didhit = hit(arrow, enemies, false, true);
-      didhit ? console.log(didhit) : "";
 
       if (collision) {
-        message.content = "The arrow hit the " + collision;
+        // message.content = "The arrow hit the " + collision;
         remove(arrow);
         return false;
       }
@@ -215,7 +265,8 @@ function setup() {
     ++updateCycles;
   }
 
-  runGame();
+  // runGame();
+  render(stage, canvas);
 
   function runGame(timestamp) {
     if (!timestamp) timestamp = 0;

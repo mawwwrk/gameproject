@@ -1,5 +1,5 @@
 let n = 0;
-export function makeCanvas(selector = "canvas", width = 256, height = 256) {
+export function makeCanvas(selector = "canvas", width = 384, height = 384) {
   //Make the canvas element and add it to the DOM
   /**
    * @type {{ctx: CanvasRenderingContext2D} extends HTMLCanvasElement} canvas

@@ -1,10 +1,25 @@
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 
+/* @import url("./assets/wallpapersden.com_zelda-fanart_2560x1440.jpg"); */
+
 :root {
-  --canvas-width: clamp(720px, 98vw, 1920px);
-  --canvas-height: calc(var(--canvas-width) * 625e-3);
+  --canvas-width: clamp(720px, 100vw, 1920px);
+  --canvas-height: calc(var(--canvas-width) * 48 / 64);
 
   font-family: Ubuntu, sans-serif;
+}
+
+.modal {
+  height: 60vw;
+  width: 80vw;
+  background: url("./assets/wallpapersden.com_zelda-fanart_2560x1440.jpg");
+  background-size: auto;
+  grid-area: modal;
+  transform: translateY(-90vh);
+}
+
+.hidden {
+  display: none;
 }
 
 /* body {
@@ -12,6 +27,7 @@
 } */
 
 body.grid {
+  overflow: hidden;
   margin: 0;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -20,10 +36,11 @@ body.grid {
   /* grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(auto, minmax(min-content 1fr)); */
   grid-template:
-    "header header header" 0.2fr
+    /* "header header header" 0fr */
     "canvas canvas canvas" 2fr
     "canvas canvas canvas" 2fr
     "footer footer footer" 1fr
+    "modal modal modal" max-content
     / 1fr 1fr 1fr;
   row-gap: 0.2ch;
 }

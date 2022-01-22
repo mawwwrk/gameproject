@@ -5,6 +5,7 @@ import { Sprite } from "./sprite";
 const Axis = { Horizontal: 0, Vertical: 1 };
 
 export class Enemy extends Sprite {
+  movingRandomly;
   #potentialPosition(selectedAxis) {
     let prop;
     if (selectedAxis === Axis.Horizontal) prop = "width";
@@ -34,37 +35,43 @@ export class Enemy extends Sprite {
     this.x -= this.vX;
     this.y -= this.vY;
   }
+  act() {
+    if (this.state === "idle" && !this.playing)
+      this.playAnimation(this.randomiseActions());
+    if (!this.movingRandomly)
+      this.movingRandomly = setTimeout(() => {
+        this.newRandomDestination.call(this);
+        this.asdmovingRandomly = false;
+      }, randomInt(5000, 10000));
+    this.move();
+    // this.showFrame(0);
+  }
 }
 
 export class Blob extends Enemy {
   constructor(source, x, y) {
     super(source);
+    this.hp = 3;
     Object.assign(this, {
       x: x,
       y: y,
       shadow: true,
-      accelerationX: 1.5,
-      accelerationY: 1.5,
+      accelerationX: 1,
+      accelerationY: 1,
       frictionX: 0.75,
       frictionY: 0.75,
       loop: true,
       mass: 1,
     });
     this.actions = { idle: [4, 4, 5, 5, 6, 6, 5, 5] };
+    this.randomiseActions();
     this.state = "idle";
     this.currentFrame = 0;
     this.fps = 6;
     attachAnimation(this);
   }
-  #movingRandomly;
-  act() {
-    if (this.state === "idle" && !this.playing) this.playAnimation([4, 6]);
-    if (!this.#movingRandomly)
-      this.#movingRandomly = setTimeout(() => {
-        this.newRandomDestination.call(this);
-        this.#movingRandomly = false;
-      }, randomInt(5000, 10000));
-    this.move();
-    // this.showFrame(0);
+
+  randomiseActions() {
+    return [randomInt(3, 7), randomInt(3, 7)];
   }
 }

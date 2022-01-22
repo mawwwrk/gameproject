@@ -43,3 +43,40 @@ export class Rectangle extends DisplayObject {
     if (this.mask && this.mask === true) ctx.clip();
   }
 }
+
+export class Circle extends DisplayObject {
+  #circular;
+  constructor(
+    diameter = 32,
+    fillStyle = "gray",
+    strokeStyle = "none",
+    lineWidth = 0,
+    x = 0,
+    y = 0
+  ) {
+    super();
+
+    this.circular = true;
+
+    Object.assign(this, { diameter, fillStyle, strokeStyle, lineWidth, x, y }); //Add a `mask` property to enable
+
+    this.mask = false;
+  }
+  draw(ctx) {
+    ctx.strokeStyle = this.strokeStyle;
+    ctx.lineWidth = this.lineWidth;
+    ctx.fillStyle = this.fillStyle;
+    ctx.beginPath();
+    ctx.arc(
+      this.radius + -this.diameter * this.pivotX,
+      this.radius + -this.diameter * this.pivotY,
+      this.radius,
+      0,
+      2 * Math.PI,
+      false
+    );
+    if (this.strokeStyle !== "none") ctx.stroke();
+    if (this.fillStyle !== "none") ctx.fill();
+    if (this.mask && this.mask === true) ctx.clip();
+  }
+}

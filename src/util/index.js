@@ -11,5 +11,5 @@ export * from "./render";
 //   120: 1000 / 120,
 // };
 
-export const fps = 15;
+export const fps = 30;
 export const frameInterval = 1000 / fps;
