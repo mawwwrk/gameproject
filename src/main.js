@@ -1,6 +1,7 @@
 import "https://cdn.skypack.dev/normalizecss";
 import { assets } from "./assets";
 import {
+  AnimatedSprite,
   Blob,
   Circle,
   DisplayObject,
@@ -13,7 +14,7 @@ import {
 import { contain, makeCanvas } from "./components";
 import "./style.css";
 import {
-  Dir,
+  Direction,
   filterPropsIn,
   frameInterval,
   hit,
@@ -41,6 +42,7 @@ assets
     // "src/assets/music.mp3",
   ])
   .then(() => setup());
+
 function setup() {
   console.log(assets);
 
@@ -145,48 +147,48 @@ function setup() {
 
   let input = {
     kb: {
-      dir: Dir.None,
+      dir: Direction.None,
 
       left: new Key(
         ["ArrowLeft", "KeyA"],
         function leftPress() {
-          input.kb.dir |= Dir.Left;
+          input.kb.dir |= Direction.Left;
           hero.facing = "Left";
         },
         function leftRelease() {
-          input.kb.dir &= ~Dir.Left;
+          input.kb.dir &= ~Direction.Left;
         }
       ),
 
       up: new Key(
         ["ArrowUp", "KeyW"],
         function upPress() {
-          input.kb.dir |= Dir.Up;
+          input.kb.dir |= Direction.Up;
           hero.facing = "Up";
         },
         function upRelease() {
-          input.kb.dir &= ~Dir.Up;
+          input.kb.dir &= ~Direction.Up;
         }
       ),
 
       right: new Key(
         ["ArrowRight", "KeyD"],
         function rightPress() {
-          input.kb.dir |= Dir.Right;
+          input.kb.dir |= Direction.Right;
           hero.facing = "Right";
         },
         function rightRelease() {
-          input.kb.dir &= ~Dir.Right;
+          input.kb.dir &= ~Direction.Right;
         }
       ),
       down: new Key(
         ["ArrowDown", "KeyS"],
         function downPress() {
-          input.kb.dir |= Dir.Down;
+          input.kb.dir |= Direction.Down;
           hero.facing = "Down";
         },
         function downRelease() {
-          input.kb.dir &= ~Dir.Down;
+          input.kb.dir &= ~Direction.Down;
         }
       ),
     },
@@ -234,7 +236,7 @@ function setup() {
         hero.proxy.fillStyle = "rgba(0,200,0, 50%)";
         obj.proxy.fillStyle = "rgba(200,0,0,50%)";
 
-        wait(3000).then(() => {
+        wait(1250).then(() => {
           hero.proxy.fillStyle = "none";
           obj.proxy.fillStyle = "none";
         });
@@ -272,37 +274,54 @@ function setup() {
     ++updateCycles;
   }
   stage.children.forEach((sprite) => {
-    let proxy,
-      { centreX, centreY, height, width, radius, diameter } = sprite;
+    if (sprite instanceof AnimatedSprite) {
+      let proxy,
+        {
+          x,
+          y,
+          centreX,
+          centreY,
+          height,
+          width,
+          radius,
+          diameter,
+          halfWidth,
+          halfHeight,
+          pivotX,
+          pivotY,
+        } = sprite;
+      console.log(sprite);
 
-    if (sprite.circular) {
-      proxy = new Circle(diameter, "none", "black", 2, centreX, centreY);
-    } else {
-      proxy = new Rectangle(
-        width,
-        height,
-        "none",
-        "black",
-        2,
-        centreX,
-        centreY
-      );
+      if (sprite.circular) {
+        proxy = new Circle(diameter, "none", "black", 1);
+      } else {
+        proxy = new Rectangle(
+          width,
+          height,
+          "none",
+          "black",
+          1
+          // centreX,
+          // centreY
+        );
+      }
+      Object.assign(proxy, { pivotX, pivotY });
+      // proxy
+      sprite.addChild(proxy);
+      sprite.proxy = proxy;
+      // sprite.putCenter(proxy);
+
+      // ? ctx.arc(centreX, centreY, radius, 0, Math.PI * 2)
+      // : ctx.rect(centreX, centreY, width, height);
     }
-    // proxy
-    sprite.addChild(proxy);
-    sprite.proxy = proxy;
-    // sprite.putCenter(proxy);
-
-    // ? ctx.arc(centreX, centreY, radius, 0, Math.PI * 2)
-    // : ctx.rect(centreX, centreY, width, height);
   });
   // render(stage, canvas);
-
+  runGame();
   function runGame(timestamp) {
     if (!timestamp) timestamp = 0;
     let elapsed = timestamp - previousTime;
     totalElapsed += elapsed;
-
+    // console.log(1);
     while (totalElapsed >= frameInterval) {
       update();
       totalElapsed -= frameInterval;

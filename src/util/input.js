@@ -43,26 +43,27 @@ export const keys = (keys, press, release) =>
   keys.forEach((key) => {
     new Key(key, press, release);
   });
+const Directions = ["Left", "Up", "Right", "Down"];
 
 /** @type {Object<string, number>} inputDir */
-export const Dir = {
+export const Direction = {
   None: 0,
-  Up: 1 << 0,
-  Right: 1 << 1,
-  Down: 1 << 2,
-  Left: 1 << 3,
+  [Directions[0]]: 1 << 0,
+  [Directions[1]]: 1 << 1,
+  [Directions[2]]: 1 << 2,
+  [Directions[3]]: 1 << 3,
 };
 
-let keyPress = Dir.None;
+let keyPress = Direction.None;
 
 export function checkDirection(
   valueToCheck,
   { ifUp: doUp, ifDown: doDown, ifLeft: doLeft, ifRight: doRight }
 ) {
-  if (valueToCheck & Dir.Up) doUp();
-  if (valueToCheck & Dir.Right) doRight();
-  if (valueToCheck & Dir.Down) doDown();
-  if (valueToCheck & Dir.Left) doLeft();
+  if (valueToCheck & Direction.Up) doUp();
+  if (valueToCheck & Direction.Right) doRight();
+  if (valueToCheck & Direction.Down) doDown();
+  if (valueToCheck & Direction.Left) doLeft();
 }
 
 function mouseEvListener(ev) {
@@ -111,16 +112,16 @@ export function initControl(targetObj = undefined) {
     ev.preventDefault();
     switch (true) {
       case match(/[yU][Wp]$/):
-        keyPress |= Dir.Up;
+        keyPress |= Direction.Up;
         break;
       case match(/[yw][Sn]$/):
-        keyPress |= Dir.Down;
+        keyPress |= Direction.Down;
         break;
       case match(/[yh][Dt]$/):
-        keyPress |= Dir.Right;
+        keyPress |= Direction.Right;
         break;
       case match(/[yf][At]$/):
-        keyPress |= Dir.Left;
+        keyPress |= Direction.Left;
         break;
     }
   });

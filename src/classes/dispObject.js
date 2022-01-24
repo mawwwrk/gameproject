@@ -119,6 +119,7 @@ export class DisplayObject {
       return this.y;
     }
   }
+
   putCenter(b, xOffset = 0, yOffset = 0) {
     let a = this;
     b.x = a.x + a.halfWidth - b.halfWidth + xOffset;

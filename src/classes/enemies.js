@@ -1,10 +1,11 @@
 import { attachAnimation } from "../components";
 import { randomInt } from "../util";
-import { Sprite } from "./sprite";
+import { DisplayObject } from "./dispObject";
+import { AnimatedSprite } from "./sprite";
 
 const Axis = { Horizontal: 0, Vertical: 1 };
 
-export class Enemy extends Sprite {
+export class Enemy extends AnimatedSprite {
   movingRandomly;
   #potentialPosition(selectedAxis) {
     let prop;
@@ -41,7 +42,7 @@ export class Enemy extends Sprite {
     if (!this.movingRandomly)
       this.movingRandomly = setTimeout(() => {
         this.newRandomDestination.call(this);
-        this.asdmovingRandomly = false;
+        this.movingRandomly = false;
       }, randomInt(5000, 10000));
     this.move();
     // this.showFrame(0);
