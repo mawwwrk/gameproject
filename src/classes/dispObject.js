@@ -36,10 +36,10 @@ export class DisplayObject {
 
     //? adding a shadow for depth
     this.shadow = false;
-    this.shadowColor = "rgba(100, 100, 100, 0.5)";
-    this.shadowOffsetX = 3;
-    this.shadowOffsetY = 3;
-    this.shadowBlur = 3;
+    this.shadowColor = "rgba(199, 199, 199, 0.72)";
+    this.shadowOffsetX = 10;
+    this.shadowOffsetY = 10;
+    this.shadowBlur = 10;
 
     this.frames = [];
     this.loop = true;
