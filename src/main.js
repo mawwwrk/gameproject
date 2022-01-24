@@ -69,7 +69,7 @@ function setup() {
   // });
 
   const backgroundImage = new Sprite(assets["outdoors.png"]);
-  backgroundImage.visible = false;
+  // backgroundImage.visible = false;
 
   const hero = new Hero(assets.customLink, 16, 26);
   // let mult = 1;
