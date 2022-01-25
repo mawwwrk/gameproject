@@ -123,16 +123,17 @@ export function filterPropsIn(assets) {
   };
 }
 
+export const boomerang = (stage, assets) => (source) => {
+  const boomerang = new Sprite(source);
+};
+
 export const projectile =
   (stage, assets) =>
   (source, height = 2, width = 8) => {
     const projectile = new Sprite(source);
     stage.addChild(projectile);
-    let { x, y } = projectile.frames[projectile.states.arrowRight[0]].frame;
-    projectile.broken = [
-      projectile.states.arrowRight[1],
-      projectile.states.arrowRight[2],
-    ];
+    let { x, y } = projectile.frames[6].frame;
+    projectile.broken = [projectile.frames[7], projectile.frames[8]];
     projectile.sourceX = x;
     projectile.sourceY = y;
     projectile.hitbox = new Rectangle(height, width, "none", "none");
@@ -154,17 +155,21 @@ export function shoot(
   projectileSprite
 ) {
   //Make a new sprite using the user-supplied `bulletSprite` function
-  let projectile = projectileSprite(); //Set the bullet's start point
+  let projectile = projectileSprite();
+  //Set the bullet's start point
+  projectile.inFlight = true;
   projectile.rotation = angle;
   projectile.x =
     shooter.centerX - projectile.halfWidth + offsetFromCenter * Math.cos(angle);
   projectile.y =
     shooter.centerY -
     projectile.halfHeight +
-    offsetFromCenter * Math.sin(angle); //Set the bullet's velocity
-  projectile.friction = 0.975;
+    offsetFromCenter * Math.sin(angle);
+  //Set the bullet's velocity
+  projectile.friction = 0.985;
   projectile.vx = Math.cos(angle) * projectileSpeed;
-  projectile.vy = Math.sin(angle) * projectileSpeed; //Push the bullet into the `bulletArray`
+  projectile.vy = Math.sin(angle) * projectileSpeed;
+  //Push the bullet into the `bulletArray`
 
   projectileArray.push(projectile);
 }
@@ -198,4 +203,21 @@ export function outsideBounds(sprite, bounds, extra = undefined) {
   if (collision && extra) extra(collision);
 
   return collision;
+}
+
+export function getCrops(assets) {
+  let cropitems = Object.keys(assets).filter((item) =>
+    /(crop|growing)/.test(item)
+  );
+  assets.crops = {};
+
+  for (let item of cropitems) {
+    const [, plant, stage] = /^([^_]+)_([^_.]+)/.exec(item);
+
+    if (!assets.crops[plant]) assets.crops[plant] = {};
+
+    if (!assets.crops[plant][stage]) assets.crops[plant][stage] = [];
+
+    assets.crops[plant][stage].push({ name: item, frame: assets[item] });
+  }
 }

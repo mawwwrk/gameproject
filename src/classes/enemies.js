@@ -1,6 +1,5 @@
 import { attachAnimation } from "../components";
 import { randomInt } from "../util";
-import { DisplayObject } from "./dispObject";
 import { AnimatedSprite } from "./sprite";
 
 const Axis = { Horizontal: 0, Vertical: 1 };
@@ -36,14 +35,34 @@ export class Enemy extends AnimatedSprite {
     this.x -= this.vX;
     this.y -= this.vY;
   }
+
+  aggro(target) {
+    target.x = this.newX;
+    target.y = this.newY;
+    this.state = "aggro";
+    let dx = target.x - this.x;
+    let dy = target.y - this.y;
+    if (Math.abs(dx) < 30 || Math.abs(dy) < 30) this.attack(target);
+  }
+  attack(target) {
+    this.state = "attacking";
+    this.onComplete = () => {
+      this.state = "idle";
+      this.fps = 12;
+      this.onComplete = undefined;
+    };
+    this.fps = 8;
+    this.playSequence([3, 4]);
+  }
+
   act() {
-    if (this.state === "idle" && !this.playing)
-      this.playAnimation(this.randomiseActions());
+    if (this.state === "idle" && !this.playing) this.playAnimation([0, 2]);
     if (!this.movingRandomly)
       this.movingRandomly = setTimeout(() => {
         this.newRandomDestination.call(this);
         this.movingRandomly = false;
       }, randomInt(5000, 10000));
+    if (this.state === "aggro") this.aggro(this.target);
     this.move();
     // this.showFrame(0);
   }
@@ -64,15 +83,9 @@ export class Blob extends Enemy {
       loop: true,
       mass: 1,
     });
-    this.actions = { idle: [4, 4, 5, 5, 6, 6, 5, 5] };
-    this.randomiseActions();
     this.state = "idle";
     this.currentFrame = 0;
     this.fps = 6;
     attachAnimation(this);
-  }
-
-  randomiseActions() {
-    return [randomInt(3, 7), randomInt(3, 7)];
   }
 }

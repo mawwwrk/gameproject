@@ -68,7 +68,7 @@ export class Hero extends AnimatedSprite {
           }
         }
         if (
-          this.vX * this.vY > this.accelerationX * this.accelerationYd &&
+          this.vX * this.vY > this.accelerationX * this.accelerationY &&
           this.#input.mouse.button === 0
         ) {
           attack = "dash";
@@ -95,7 +95,9 @@ export class Hero extends AnimatedSprite {
   }
 
   standing() {
-    if (this.#input.mouse.button in [1, 2, 3]) this.state = "attack";
+    if (!this.#input.gamestate === "inTown") {
+      if (this.#input.mouse.button in [1, 2, 3]) this.state = "attack";
+    }
     if (this.#input.kb.dir !== Direction.None) this.state = "moving";
   }
 

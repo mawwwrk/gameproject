@@ -1,3 +1,4 @@
+export * from "./crops";
 export * from "./dispObject";
 export * from "./enemies";
 export * from "./hero";

@@ -1,9 +1,8 @@
 import "https://cdn.skypack.dev/normalizecss";
 import { assets } from "./assets";
 import {
-  AnimatedSprite,
   Blob,
-  Circle,
+  Crop,
   DisplayObject,
   Group,
   Hero,
@@ -17,6 +16,7 @@ import {
   Direction,
   filterPropsIn,
   frameInterval,
+  getCrops,
   hit,
   Key,
   makePointer,
@@ -30,20 +30,27 @@ import {
   wait,
 } from "./util";
 
+let state = "inTown";
+
 assets
   .load([
-    "src/assets/link_master.json",
     "src/assets/bg.json",
-    "src/assets/enemies.json",
-    "src/assets/blob.json",
-    "src/assets/ammo.json",
-    "src/assets/customLink.json",
+    "src/assets/sprites.json",
+    "src/assets/Link.json",
     "src/assets/silver.ttf",
     // "src/assets/music.mp3",
   ])
   .then(() => setup());
 
+const storage = window.sessionStorage;
+let maxPlants = 6,
+  maxEnemies = 6,
+  enemies = [],
+  enemyGrp,
+  arrows;
+
 function setup() {
+  getCrops(assets);
   console.log(assets);
 
   const canvas = makeCanvas("app");
@@ -57,93 +64,72 @@ function setup() {
   [stage.width, stage.height] = [canvas.width, canvas.height];
   proxiedResizeObserver(stage).observe(canvas);
 
-  // const music = assets["src/assets/music.mp3"];
-
-  // music.play();
+  const border = new Rectangle();
+  // border.fillStyle = "none";
+  if (state === "inTown")
+    Object.assign(border, { width: 25, height: 90, x: 495, y: 270 });
+  if (state === "inTheWoods")
+    Object.assign(border, { width: 180, height: 40, x: 400, y: 360 });
 
   const filler = document.querySelector(".modal");
-  // filler.addEventListener("click", () => {
-  // music.pause();
   filler.classList.add("hidden");
-  // runGame();
-  // });
 
-  const backgroundImage = new Sprite(assets["outdoors.png"]);
-  // backgroundImage.visible = false;
+  const bg = ["bg_outdoors.png", "bg_town.png"];
+  const key = state === "inTown" ? 1 : 0;
+  const backgroundImage = new Sprite(assets[bg[key]]);
 
-  const hero = new Hero(assets.customLink, 16, 26);
-  // let mult = 1;
-  // let point = [hero.attackRange.centerX, hero.attackRange.centerY];
-  // hero.attackRange.draw = function draw() {
-  //   ctx.beginPath();
-  //   ctx.strokeStyle = "pink";
-  //   ctx.moveTo(hero.pivotX, hero.pivotY);
-  //   ctx.lineTo(Math.sin(mult * Math.PI + 1), Math.cos(mult * Math.PI - 1));
-  //   ctx.arc(
-  //     hero.pivotX,
-  //     hero.pivotY,
-  //     30,
-  //     mult * Math.PI + 0.75,
-  //     mult * Math.PI - 0.75,
-  //     true
-  //   );
-  //   ctx.stroke();
-  // };
+  const hero = new Hero(assets.Link, 16, 26);
 
   let message = new TextSprite("", "12px puzzler", "black", 8, 8);
   const groupObj = new Group();
 
   // backgroundImage.addChild(new Rectangle(200, 100, "white", "none", 0, 20, 20));
-  [backgroundImage, hero, groupObj, message].forEach((ea) =>
+  [backgroundImage, border, hero, groupObj, message].forEach((ea) =>
     stage.addChild(ea)
   );
-  let enemies = [],
-    spacing = 48,
-    xOffset = 150;
-  for (let i = 0; i < 6; i++) {
-    const blob = new Blob(
-      filterPropsIn(assets)("pinkblob"),
-      spacing * i + xOffset,
-      randomInt(0, canvas.height - 20)
-    );
-    //Give the enemy a random y position
-    blob.circular = true;
-    blob.radius = 26;
-    enemies = [...enemies, blob];
-    stage.addChild(blob);
+
+  console.log(stage);
+
+  const garden = new Rectangle(250, 200, "none", "red", 1, 100, 180);
+  stage.addChild(garden);
+
+  if (state !== "inTown") garden.visible = false;
+
+  if (state === "inTheWoods") {
+    let spacing = 48,
+      xOffset = 150;
+    for (let i = 0; i < maxEnemies; i++) {
+      const blob = new Blob(
+        filterPropsIn(assets)("slime_blue"),
+        spacing * i + xOffset,
+        randomInt(0, canvas.height - 20)
+      );
+      //Give the enemy a random y position
+      blob.circular = true;
+      blob.radius = 26;
+      enemies = [...enemies, blob];
+      stage.addChild(blob);
+    }
+
+    enemyGrp = new Group(enemies);
   }
-
-  const enemyGrp = new Group(enemies);
-
-  let arrows = [];
+  arrows = [];
   const arrow = () =>
-    projectile(stage, assets)(assets.ammo)({ scale: stage.children[1].scale });
+    projectile(
+      stage,
+      assets
+    )(
+      Object.keys(assets)
+        .filter((x) => /arrow.+/.test(x))
+        .map((y) => assets[y])
+    )({
+      scale: stage.children[1].scale,
+    });
   const fire = (shooter, angle) => {
     if (fire.reloading) return;
     shoot(shooter, angle, 0, 20, arrows, arrow);
     fire.reloading = true;
   };
-
-  // const bigmessage = new TextSprite(
-  //   "Game Over!",
-  //   "64px Futura",
-  //   "black",
-  //   20,
-  //   20
-  // );
-  // bigmessage.x = 120;
-  // bigmessage.y = canvas.height / 2 - 64;
-
-  // const gameOverScene = new Group(bigmessage);
-
-  // stage.addChild(bigmessage);
-  // stage.addChild(gameOverScene);
-
-  // gameOverScene.visible = true;
-
-  const vkey = new Key("KeyV", () => console.log(hero.vX, hero.vY));
-
-  console.log(stage.children);
 
   let input = {
     kb: {
@@ -193,6 +179,7 @@ function setup() {
       ),
     },
     mouse: {},
+    gamestate: state,
   };
 
   const pointer = makePointer(canvas);
@@ -205,7 +192,7 @@ function setup() {
         hero,
         Math.atan2(pointer.centerY - hero.y, pointer.centerX - hero.x)
       );
-      wait(600).then(() => (fire.reloading = false));
+      wait(300).then(() => (fire.reloading = false));
     }
     input.mouse.atan2 = Math.atan2(
       pointer.centerY - hero.y,
@@ -226,22 +213,47 @@ function setup() {
   function update() {
     stage.putCenter(backgroundImage);
     hero.update(input);
+    contain(hero, stage.localBounds);
+    if (state === "inTown") {
+      inTown();
+      if (
+        hit(hero, border, false, false, "none", (s, u) =>
+          console.log(s, u, hero.vX)
+        ) &&
+        Math.abs(hero.vX) < 0.1
+      ) {
+        state === "inTheWoods";
+        setup();
+      }
+    }
+    if (state === "inTheWoods") {
+      inTheWoods();
+      if (hit(hero, border) && hero.vX === 0) {
+        state === "inTown";
+        setup();
+      }
+    }
+    ++updateCycles;
+  }
+  function inTheWoods() {
     enemies.forEach((ea) => ea.act());
     /* const hitBoxCollision = */
     contain(enemyGrp, stage.localBounds);
-    contain(hero, stage.localBounds);
 
-    let heroHit = hit(hero, enemies, true, true, null, (str, obj) => {
+    let heroHit = hit(hero, enemies, false, false, null, (str, obj) => {
       if (hero.state === "attack") {
-        hero.proxy.fillStyle = "rgba(0,200,0, 50%)";
-        obj.proxy.fillStyle = "rgba(200,0,0,50%)";
-
-        wait(1250).then(() => {
-          hero.proxy.fillStyle = "none";
-          obj.proxy.fillStyle = "none";
-        });
-        // obj.hp -= 2;sss
-        // console.log(obj);
+        //   hero.proxy.fillStyle = "rgba(0,200,0, 50%)";
+        //   obj.proxy.fillStyle = "rgba(200,0,0,50%)";
+        obj.hp -= 2;
+        obj.state = "aggro";
+        obj.target = hero;
+        obj.aggro(hero);
+        //   wait(1250).then(() => {
+        //     hero.proxy.fillStyle = "none";
+        //     obj.proxy.fillStyle = "none";
+        //   });
+        //   // obj.hp -= 2;sss
+        //   // console.log(obj);
       }
     });
 
@@ -253,13 +265,24 @@ function setup() {
       return true;
     });
     arrows = arrows.filter((arrow) => {
-      let didhit = hit(arrow, enemies, true, true, null, (str, obj) => {
-        obj.hp -= 1;
-        console.log(obj);
-      });
-      didhit ? console.log(didhit) : 1;
       arrow.x += arrow.vx;
       arrow.y += arrow.vy;
+      // if (arrow.falling && arrow.y <= arrow.dropHeight) {
+      //   arrow.vy += 1;
+      //   arrow.x += arrow.vx;
+      //   arrow.y += arrow.vy;
+      // }
+      if (!arrow.inFlight) {
+        arrow.vx *= arrow.friction;
+        arrow.vy *= arrow.friction;
+      }
+
+      if (arrow.inFlight) {
+        let didhit = hit(arrow, enemies, true, true, null, (str, obj) => {
+          obj.hp -= 1;
+          arrow.inFlight = false;
+        });
+      }
 
       let collision = outsideBounds(arrow, stage.localBounds);
 
@@ -270,51 +293,7 @@ function setup() {
       }
       return true;
     });
-
-    ++updateCycles;
   }
-  stage.children.forEach((sprite) => {
-    if (sprite instanceof AnimatedSprite) {
-      let proxy,
-        {
-          x,
-          y,
-          centreX,
-          centreY,
-          height,
-          width,
-          radius,
-          diameter,
-          halfWidth,
-          halfHeight,
-          pivotX,
-          pivotY,
-        } = sprite;
-      console.log(sprite);
-
-      if (sprite.circular) {
-        proxy = new Circle(diameter, "none", "black", 1);
-      } else {
-        proxy = new Rectangle(
-          width,
-          height,
-          "none",
-          "black",
-          1
-          // centreX,
-          // centreY
-        );
-      }
-      Object.assign(proxy, { pivotX, pivotY });
-      // proxy
-      sprite.addChild(proxy);
-      sprite.proxy = proxy;
-      // sprite.putCenter(proxy);
-
-      // ? ctx.arc(centreX, centreY, radius, 0, Math.PI * 2)
-      // : ctx.rect(centreX, centreY, width, height);
-    }
-  });
   // render(stage, canvas);
   runGame();
   function runGame(timestamp) {
@@ -332,5 +311,53 @@ function setup() {
 
     previousTime = timestamp;
     requestAnimationFrame(runGame);
+  }
+
+  const plants = [];
+  let shouldGrow = true;
+
+  setInterval(() => {
+    console.log(plants);
+  }, 5000);
+  function inTown() {
+    if (shouldGrow && plants.length < maxPlants)
+      Math.random() < 0.8 ? addNewCrop(plants) : null;
+    plants.forEach((plant) => {
+      plant.showFrame(plant._currentFrame);
+      if (!shouldGrow) return;
+      if (Math.random() < 0.8) advanceCrop(plant);
+
+      function advanceCrop(crop) {
+        crop._currentFrame += 1;
+        crop.showFrame(crop._currentFrame);
+        shouldGrow = false;
+        wait(randomInt(4, 20) * 1000).then(() => (shouldGrow = true));
+      }
+    });
+    // setInterval(console.log(plants), 3000);
+    function addNewCrop(arr) {
+      if (!shouldGrow) return;
+      console.log(arr);
+      let cropType =
+          Math.random() < 0.7 ? "Starfruit" : Crop.types[randomInt(0, 2)],
+        cropFiles = assets.crops[cropType];
+
+      console.log(arr);
+      const crop = new Crop(
+        cropFiles.growing.map((x) => x.frame),
+        Math.random() * garden.width,
+        Math.random() * garden.height
+      );
+      console.log(crop);
+
+      garden.addChild(crop);
+
+      crop.scale = 1;
+      crop.harvest = cropFiles.crop;
+      arr.push(crop);
+
+      shouldGrow = false;
+      wait(randomInt(4, 20) * 1000).then(() => (shouldGrow = true));
+    }
   }
 }
