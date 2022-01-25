@@ -23,20 +23,85 @@ export class Key {
 
   downHandler(ev) {
     if (this.test(ev.code)) {
-      ev.preventDefault();
+      if (this.isUp) this.press();
       this.isDown = true;
       this.isUp = false;
-      this.press();
+      ev.preventDefault();
     }
   }
   upHandler(ev) {
     if (this.test(ev.code)) {
-      ev.preventDefault();
+      if (this.isDown) this.release();
       this.isUp = true;
       this.isDown = false;
-      this.release();
+      ev.preventDefault();
     }
   }
+  unsubscribe = () => {
+    window.removeEventListener("keydown", this.downHandler);
+    window.removeEventListener("keyup", this.upHandler);
+  };
+}
+
+export function applyHandlers([left, up, right, down], hero) {
+  left.press = () => {
+    //Play the sprite’s `walkLeft` animation
+    //sequence and set the sprite’s velocity
+    hero.textures = hero.animations["runLeft"];
+    if (!hero.playing) hero.play();
+    hero.vx = -5;
+    hero.vy = 0;
+  }; //Left arrow key `release` method
+  left.release = () => {
+    //If the left arrow has been released, and the right arrow isn’t down,
+    //and the sprite isn’t moving vertically, stop the sprite from moving
+    //by setting its velocity to zero. Then display the sprite’s static
+    //`left` state.
+    if (!right.isDown && hero.vy === 0) {
+      hero.vx = 0;
+      hero.textures = hero.animations["standLeft"];
+      hero.gotoAndStop(0);
+    } //The rest of the arrow keys follow the same format //Up
+  };
+  up.press = () => {
+    hero.textures = hero.animations["runUp"];
+    if (!hero.playing) hero.play();
+    hero.vy = -5;
+    hero.vx = 0;
+  };
+  up.release = () => {
+    if (!down.isDown && hero.vx === 0) {
+      hero.vy = 0;
+      hero.textures = hero.animations["standUp"];
+      hero.gotoAndStop(0);
+    }
+  }; //Right
+  right.press = () => {
+    hero.textures = hero.animations["runRight"];
+    if (!hero.playing) hero.play();
+    hero.vx = 5;
+    hero.vy = 0;
+  };
+  right.release = () => {
+    if (!left.isDown && hero.vy === 0) {
+      hero.vx = 0;
+      hero.textures = hero.animations["standRight"];
+      hero.gotoAndStop(0);
+    }
+  }; //Down
+  down.press = () => {
+    hero.textures = hero.animations["runDown"];
+    if (!hero.playing) hero.play();
+    hero.vy = 5;
+    hero.vx = 0;
+  };
+  down.release = () => {
+    if (!up.isDown && hero.vx === 0) {
+      hero.vy = 0;
+      hero.textures = hero.animations["standDown"];
+      hero.gotoAndStop(0);
+    }
+  };
 }
 
 export const keys = (keys, press, release) =>
@@ -55,6 +120,53 @@ export const Direction = {
 };
 
 let keyPress = Direction.None;
+
+export const input = {
+  kb: {
+    dir: Direction.None,
+
+    left: new Key(
+      ["ArrowLeft", "KeyA"],
+      function leftPress() {
+        input.kb.dir |= Direction.Left;
+      },
+      function leftRelease() {
+        input.kb.dir &= ~Direction.Left;
+      }
+    ),
+
+    up: new Key(
+      ["ArrowUp", "KeyW"],
+      function upPress() {
+        input.kb.dir |= Direction.Up;
+      },
+      function upRelease() {
+        input.kb.dir &= ~Direction.Up;
+      }
+    ),
+
+    right: new Key(
+      ["ArrowRight", "KeyD"],
+      function rightPress() {
+        input.kb.dir |= Direction.Right;
+      },
+      function rightRelease() {
+        input.kb.dir &= ~Direction.Right;
+      }
+    ),
+    down: new Key(
+      ["ArrowDown", "KeyS"],
+      function downPress() {
+        input.kb.dir |= Direction.Down;
+      },
+      function downRelease() {
+        input.kb.dir &= ~Direction.Down;
+      }
+    ),
+  },
+  mouse: {},
+  gamestate: undefined,
+};
 
 export function checkDirection(
   valueToCheck,
