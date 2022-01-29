@@ -147,6 +147,11 @@ function setup() {
   coin.y = 5;
 
   scoreContainer.x = 500;
+  const eKey = new Key(
+    "KeyE",
+    () => harvest(hero),
+    () => console.log(hero[`plant${hero.facing}`])
+  );
 
   app.stage.addChild(scoreContainer);
   state = farming;
