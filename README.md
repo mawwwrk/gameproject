@@ -147,7 +147,7 @@ Of the things i set out to accomplish with this project, a majority had been don
 
 That being the case, i put getting the visual element up and running as the priority, and as i encountered unexpected issues, i worked solved or worked around them in ways that resulted in a situation that made it difficult to implement the gameplay functionalty ( sword attacks don't register on enemy, but enemy dies/disappears for no discernible reason when i'm walking through the debugger ).
 
-In the end, i had to scrap most of what i had done previously and start almost from scratch, in order to meet the minimum deliverable for the project. I wrote TONS of code that ended up unused. 
+In the end, i had to scrap most of what i had done previously and start almost from scratch, in order to meet the minimum deliverable for the project. I wrote TONS of code that ended up unused. (Specifically, project went from 2575 lines of code to 529 lines of code after editing out unused code.)
 
 I had initially put a tile based system out of consideration as i assumed it would add unnecessary complexity. I ended up using it for the project that was presented. 
 
