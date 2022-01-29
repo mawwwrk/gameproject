@@ -205,19 +205,20 @@ export function outsideBounds(sprite, bounds, extra = undefined) {
   return collision;
 }
 
-export function getCrops(assets) {
-  let cropitems = Object.keys(assets).filter((item) =>
-    /(crop|growing)/.test(item)
+export function farmCondition(index) {
+  return (
+    index / 40 > 11 && index / 40 < 25 && index % 40 >= 4 && index % 40 < 22
   );
-  assets.crops = {};
+}
 
-  for (let item of cropitems) {
-    const [, plant, stage] = /^([^_]+)_([^_.]+)/.exec(item);
-
-    if (!assets.crops[plant]) assets.crops[plant] = {};
-
-    if (!assets.crops[plant][stage]) assets.crops[plant][stage] = [];
-
-    assets.crops[plant][stage].push({ name: item, frame: assets[item] });
-  }
+export function adjacentGids(sprite) {
+  const gid = Math.floor(sprite.x / 16) + Math.floor(sprite.y / 16) * 40,
+    adjacentGids = {
+      Left: gid - 1,
+      Up: gid - 40,
+      Right: gid + 1,
+      Down: gid + 40,
+    };
+  sprite.gid = gid;
+  return adjacentGids;
 }
