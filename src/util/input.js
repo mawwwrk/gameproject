@@ -43,7 +43,7 @@ export class Key {
   };
 }
 
-const velocity = 1.3;
+const velocity = 2.4;
 
 export function applyHandlers([left, up, right, down], hero) {
   left.press = () => {
