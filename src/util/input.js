@@ -47,24 +47,18 @@ const velocity = 2.4;
 
 export function applyHandlers([left, up, right, down], hero) {
   left.press = () => {
-    //Play the sprite’s `walkLeft` animation
-    //sequence and set the sprite’s velocity
     hero.facing = "Left";
     hero.textures = hero.animations["runLeft"];
     if (!hero.playing) hero.play();
     hero.vx = -velocity;
     hero.vy = 0;
-  }; //Left arrow key `release` method
+  };
   left.release = () => {
-    //If the left arrow has been released, and the right arrow isn’t down,
-    //and the sprite isn’t moving vertically, stop the sprite from moving
-    //by setting its velocity to zero. Then display the sprite’s static
-    //`left` state.
     if (!right.isDown && hero.vy === 0) {
       hero.vx = 0;
       hero.textures = hero.animations["standLeft"];
       hero.gotoAndStop(0);
-    } //The rest of the arrow keys follow the same format //Up
+    }
   };
   up.press = () => {
     hero.facing = "Up";
@@ -79,7 +73,7 @@ export function applyHandlers([left, up, right, down], hero) {
       hero.textures = hero.animations["standUp"];
       hero.gotoAndStop(0);
     }
-  }; //Right
+  };
   right.press = () => {
     hero.facing = "Right";
     hero.textures = hero.animations["runRight"];
@@ -93,7 +87,7 @@ export function applyHandlers([left, up, right, down], hero) {
       hero.textures = hero.animations["standRight"];
       hero.gotoAndStop(0);
     }
-  }; //Down
+  };
   down.press = () => {
     hero.facing = "Down";
     hero.textures = hero.animations["runDown"];
@@ -173,74 +167,3 @@ export const input = {
   mouse: {},
   gamestate: undefined,
 };
-
-export function checkDirection(
-  valueToCheck,
-  { ifUp: doUp, ifDown: doDown, ifLeft: doLeft, ifRight: doRight }
-) {
-  if (valueToCheck & Direction.Up) doUp();
-  if (valueToCheck & Direction.Right) doRight();
-  if (valueToCheck & Direction.Down) doDown();
-  if (valueToCheck & Direction.Left) doLeft();
-}
-
-function mouseEvListener(ev) {
-  {
-    ev.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (!(ev.target.nodeName === "CANVAS")) return;
-    let { offsetX, offsetY } = ev,
-      [dx, dy] = [offsetX - targetObj.x, offsetY - targetObj.y];
-    // targetObj.rotation = Math.atan2(dy, dx);
-    // targetObj.setPosition(offsetX, offsetY);
-  }
-}
-
-/**
- * @typedef {PointerEvent} SpecialEvt
- * @property {EventTarget}
- *
- * */
-
-/** @param {import("../classes").DisplayObject} targetObj */
-export function initControl(targetObj = undefined) {
-  document.addEventListener("click", (ev) => {
-    ev.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    // if (!(ev.target.nodeName === "CANVAS")) return;
-    // let { offsetX, offsetY } = ev;
-    // targetObj.setPosition(offsetX, offsetY);
-  });
-  document.addEventListener("mousemove", (ev) => {
-    ev.preventDefault();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    // if (!(ev.target.nodeName === "CANVAS")) return;
-    // let { offsetX, offsetY } = ev,
-    //   [dx, dy] = [offsetX - targetObj.x, offsetY - targetObj.y];
-    // targetObj.rotation = Math.atan2(dy, dx);
-  });
-
-  document.addEventListener("keydown", (ev) => {
-    console.log(ev);
-    let match = (/** @type {RegExp} */ rg) => rg.test(ev.code);
-    if (!match(/^Ar|y[WASD]$/)) return;
-    ev.preventDefault();
-    switch (true) {
-      case match(/[yU][Wp]$/):
-        keyPress |= Direction.Up;
-        break;
-      case match(/[yw][Sn]$/):
-        keyPress |= Direction.Down;
-        break;
-      case match(/[yh][Dt]$/):
-        keyPress |= Direction.Right;
-        break;
-      case match(/[yf][At]$/):
-        keyPress |= Direction.Left;
-        break;
-    }
-  });
-}

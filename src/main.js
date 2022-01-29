@@ -3,8 +3,8 @@ import * as PIXI from "./imports";
 import { scaleToWindow } from "./imports";
 import "./style.css";
 import {
-  adjacentGids,
   applyHandlers,
+  checkPlantAdjacent,
   farmCondition,
   Key,
   randomInt,
@@ -86,21 +86,6 @@ let gridProps = grid.createGridprops(),
     };
   });
 
-function drawGrid(graphics, input, fillStyle) {
-  graphics.clear();
-  graphics.beginTextureFill(fillStyle);
-  for (let i = 0; i < input.length; i++) {
-    let { rect } = input[i];
-    graphics.drawShape(rect);
-  }
-}
-
-function drawHitBox(graphics, input, fillStyle) {
-  graphics.clear();
-  graphics.beginTextureFill(fillStyle);
-  graphics.drawShape(input);
-}
-
 PIXI.Loader.shared
   .add([
     "src/assets/Link.json",
@@ -134,7 +119,6 @@ function setup() {
     facing: "Down",
   });
   hero.animations = linksheet.animations;
-  // hero.hitArea = new PIXI.Rectangle(hero.x - 10, hero.y - 10, 20, 25);
   app.stage.addChild(hero);
   if (showNums) {
     app.stage.addChild(grids);
@@ -151,14 +135,6 @@ function setup() {
     [input.keys.left, input.keys.up, input.keys.right, input.keys.down],
     hero
   );
-  // console.log(hero);
-  const vKey = new Key("KeyV", () => console.log(hero));
-  const eKey = new Key(
-    "KeyE",
-    () => harvest(hero),
-    () => console.log(hero[`plant${hero.facing}`])
-  );
-  //   app.render();
 
   PIXI.BitmapFont.from("bitmapFont", bitmapStyle);
   text = new PIXI.BitmapText("message", { fontName: "bitmapFont" });
@@ -173,39 +149,11 @@ function setup() {
   scoreContainer.x = 500;
 
   app.stage.addChild(scoreContainer);
-
   state = farming;
-
   gameLoop();
-  // console.log(grids.children);
 }
 function gameLoop() {
-  let heroAdjacent = adjacentGids(hero);
-
-  if ("plant" in gridRefs[heroAdjacent.Left]) {
-    hero.plantLeft = gridRefs[heroAdjacent.Left];
-    hero.vx = Math.max(0, hero.vx);
-  } else {
-    hero.plantLeft = undefined;
-  }
-  if ("plant" in gridRefs[heroAdjacent.Up]) {
-    hero.plantUp = gridRefs[heroAdjacent.Up];
-    hero.vy = Math.max(0, hero.vy);
-  } else {
-    hero.plantUp = undefined;
-  }
-  if ("plant" in gridRefs[heroAdjacent.Right]) {
-    hero.plantRight = gridRefs[heroAdjacent.Right];
-    hero.vx = Math.min(0, hero.vx);
-  } else {
-    hero.plantRight = undefined;
-  }
-  if ("plant" in gridRefs[heroAdjacent.Down]) {
-    hero.plantDown = gridRefs[heroAdjacent.Down];
-    hero.vy = Math.min(0, hero.vy);
-  } else {
-    hero.plantDown = undefined;
-  }
+  checkPlantAdjacent(hero, gridRefs);
   hero.x += hero.vx;
   hero.y += hero.vy;
 
@@ -271,11 +219,11 @@ function makeCropSprite() {
 
   const type = ["Grapes", "Melon", "Starfruit"][randomInt(0, 2)];
   const stage = 1;
-
   const ref = `${type}_growing_0${stage}`;
 
   let { x, y } = tile.rect,
     sprite = new PIXI.Sprite(spriteSheet.textures[ref]);
+
   Object.assign(sprite, { x, y });
   tile.plant = { type, stage, sprite };
   growingPlants.push(tile.plant);

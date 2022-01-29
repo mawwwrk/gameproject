@@ -1,8 +1,5 @@
-export * from "./collision";
 export * from "./funcs";
 export * from "./input";
-export * from "./physics";
-export * from "./render";
 
 // export const fps = {
 //   24: 1000 / 24,
