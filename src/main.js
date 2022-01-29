@@ -111,7 +111,6 @@ PIXI.Loader.shared
   .load(setup);
 let spriteSheet;
 function setup() {
-  console.log(PIXI.Loader.shared.resources);
   spriteSheet =
     PIXI.Loader.shared.resources["src/assets/sprites.json"].spritesheet;
   bg = new PIXI.Sprite(
@@ -247,7 +246,6 @@ function harvest(hero) {
   if (target) {
     let { type, sprite } = target.plant;
     score += scoring[type];
-    console.log(sprite);
     sprite.texture = spriteSheet.textures[`${type}_crop`];
     growingPlants.splice(growingPlants.indexOf(sprite), 1);
     delete target.plant;
