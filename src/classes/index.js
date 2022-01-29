@@ -1,4 +1,5 @@
-export * from "./crops";
+export * from "./crop";
+export * from "./displayGrid";
 export * from "./dispObject";
 export * from "./enemies";
 export * from "./hero";

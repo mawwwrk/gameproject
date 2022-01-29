@@ -1,363 +1,302 @@
-import "https://cdn.skypack.dev/normalizecss";
-import { assets } from "./assets";
-import {
-  Blob,
-  Crop,
-  DisplayObject,
-  Group,
-  Hero,
-  Rectangle,
-  Sprite,
-  TextSprite,
-} from "./classes";
-import { contain, makeCanvas } from "./components";
+import { DisplayGrid } from "./classes";
+import * as PIXI from "./imports";
+import { scaleToWindow } from "./imports";
 import "./style.css";
 import {
-  Direction,
-  filterPropsIn,
-  frameInterval,
-  getCrops,
-  hit,
+  adjacentGids,
+  applyHandlers,
+  farmCondition,
   Key,
-  makePointer,
-  outsideBounds,
-  projectile,
-  proxiedResizeObserver,
   randomInt,
-  remove,
-  render,
-  shoot,
   wait,
 } from "./util";
 
-let state = "inTown";
+const app = new PIXI.Application({
+  width: 640,
+  height: 480,
+  backgroundColor: 0xffffff,
+});
 
-assets
-  .load([
-    "src/assets/bg.json",
-    "src/assets/sprites.json",
-    "src/assets/Link.json",
-    "src/assets/silver.ttf",
-    // "src/assets/music.mp3",
-  ])
-  .then(() => setup());
+document.body.insertBefore(
+  app.view,
+  document.body.querySelector("body > :first-child:not(:is(canvas))")
+);
+scaleToWindow(app.view, "darkgray");
+window.addEventListener("resize", function (evt) {
+  scaleToWindow(app.view);
+});
 
-const storage = window.sessionStorage;
-let maxPlants = 6,
-  maxEnemies = 6,
-  enemies = [],
-  enemyGrp,
-  arrows;
+let showGrid = false,
+  showNums = false,
+  hideBG = false;
 
-function setup() {
-  getCrops(assets);
-  console.log(assets);
+let hero,
+  bg,
+  state,
+  score,
+  text,
+  scoring = { Grapes: 1, Melon: 3, Starfruit: 5 },
+  input = {},
+  grid = new DisplayGrid(),
+  graphics = new PIXI.Graphics().lineStyle({ width: 1, color: "purple" }),
+  graohicsFillOptions = {
+    texture: PIXI.Texture.WHITE,
+    color: 0xffffff,
+    alpha: 1,
+  },
+  textStyleOptions = {
+    fontFamily: "Arial",
+    fontSize: 7,
+    fill: "black",
+    stroke: "black",
+    strokeThickness: 0.5,
+    align: "center",
+    dropShadow: false,
+    // dropShadowColor: "#000000", // dropShadowBlur: 4, // dropShadowAngle: Math.PI / 6, // dropShadowDistance: 6,
+  },
+  bitmapStyle = new PIXI.TextStyle({
+    fontFamily: '"Courier New", Courier, monospace',
+    fontSize: 22,
+    fontWeight: "bold",
+    stroke: "white",
+    strokeThickness: 3,
+  });
+let grids;
 
-  const canvas = makeCanvas("app");
-  let ctx = canvas.ctx,
-    previousTime = 0,
-    framesDrawn = 0,
-    updateCycles = 0,
-    totalElapsed = 0;
+if (showNums) {
+  grids = new PIXI.Container();
+}
 
-  const stage = new DisplayObject();
-  [stage.width, stage.height] = [canvas.width, canvas.height];
-  proxiedResizeObserver(stage).observe(canvas);
+let gridProps = grid.createGridprops(),
+  gridRefs = gridProps.map((props, index) => {
+    let { x, y, width, height } = props,
+      rect = new PIXI.Rectangle(x, y, width, height);
 
-  const border = new Rectangle();
-  // border.fillStyle = "none";
-  if (state === "inTown")
-    Object.assign(border, { width: 25, height: 90, x: 495, y: 270 });
-  if (state === "inTheWoods")
-    Object.assign(border, { width: 180, height: 40, x: 400, y: 360 });
-
-  const filler = document.querySelector(".modal");
-  filler.classList.add("hidden");
-
-  const bg = ["bg_outdoors.png", "bg_town.png"];
-  const key = state === "inTown" ? 1 : 0;
-  const backgroundImage = new Sprite(assets[bg[key]]);
-
-  const hero = new Hero(assets.Link, 16, 26);
-
-  let message = new TextSprite("", "12px puzzler", "black", 8, 8);
-  const groupObj = new Group();
-
-  // backgroundImage.addChild(new Rectangle(200, 100, "white", "none", 0, 20, 20));
-  [backgroundImage, border, hero, groupObj, message].forEach((ea) =>
-    stage.addChild(ea)
-  );
-
-  console.log(stage);
-
-  const garden = new Rectangle(250, 200, "none", "red", 1, 100, 180);
-  stage.addChild(garden);
-
-  if (state !== "inTown") garden.visible = false;
-
-  if (state === "inTheWoods") {
-    let spacing = 48,
-      xOffset = 150;
-    for (let i = 0; i < maxEnemies; i++) {
-      const blob = new Blob(
-        filterPropsIn(assets)("slime_blue"),
-        spacing * i + xOffset,
-        randomInt(0, canvas.height - 20)
-      );
-      //Give the enemy a random y position
-      blob.circular = true;
-      blob.radius = 26;
-      enemies = [...enemies, blob];
-      stage.addChild(blob);
+    if (showNums) {
+      let text = new PIXI.Text(index.toString(), textStyleOptions);
+      Object.assign(text, { x, y });
+      grids.addChild(text);
     }
-
-    enemyGrp = new Group(enemies);
-  }
-  arrows = [];
-  const arrow = () =>
-    projectile(
-      stage,
-      assets
-    )(
-      Object.keys(assets)
-        .filter((x) => /arrow.+/.test(x))
-        .map((y) => assets[y])
-    )({
-      scale: stage.children[1].scale,
-    });
-  const fire = (shooter, angle) => {
-    if (fire.reloading) return;
-    shoot(shooter, angle, 0, 20, arrows, arrow);
-    fire.reloading = true;
-  };
-
-  let input = {
-    kb: {
-      dir: Direction.None,
-
-      left: new Key(
-        ["ArrowLeft", "KeyA"],
-        function leftPress() {
-          input.kb.dir |= Direction.Left;
-          hero.facing = "Left";
-        },
-        function leftRelease() {
-          input.kb.dir &= ~Direction.Left;
-        }
-      ),
-
-      up: new Key(
-        ["ArrowUp", "KeyW"],
-        function upPress() {
-          input.kb.dir |= Direction.Up;
-          hero.facing = "Up";
-        },
-        function upRelease() {
-          input.kb.dir &= ~Direction.Up;
-        }
-      ),
-
-      right: new Key(
-        ["ArrowRight", "KeyD"],
-        function rightPress() {
-          input.kb.dir |= Direction.Right;
-          hero.facing = "Right";
-        },
-        function rightRelease() {
-          input.kb.dir &= ~Direction.Right;
-        }
-      ),
-      down: new Key(
-        ["ArrowDown", "KeyS"],
-        function downPress() {
-          input.kb.dir |= Direction.Down;
-          hero.facing = "Down";
-        },
-        function downRelease() {
-          input.kb.dir &= ~Direction.Down;
-        }
-      ),
-    },
-    mouse: {},
-    gamestate: state,
-  };
-
-  const pointer = makePointer(canvas);
-  pointer.press = (event) => {
-    input.mouse.button = event.button;
-    if (fire.reloading && input.mouse.button === 2)
-      input.mouse.button === undefined;
-    if (event.button === 2 && !fire.reloading) {
-      fire(
-        hero,
-        Math.atan2(pointer.centerY - hero.y, pointer.centerX - hero.x)
-      );
-      wait(300).then(() => (fire.reloading = false));
-    }
-    input.mouse.atan2 = Math.atan2(
-      pointer.centerY - hero.y,
-      pointer.centerX - hero.x
-    );
-    // console.log(input.mouse.atan2);
-  };
-  pointer.release = (event) => {
-    input.mouse.button = undefined;
-  };
-
-  const preventDefaultKeys = new Set(["Space"]);
-  addEventListener("contextmenu", (ev) => ev.preventDefault());
-  addEventListener("keypress", (ev) => {
-    if (preventDefaultKeys.has(ev.code)) ev.preventDefault;
+    let info = {};
+    if (farmCondition(index)) info.farm = true;
+    return {
+      rect,
+      info,
+      // text
+    };
   });
 
-  function update() {
-    stage.putCenter(backgroundImage);
-    hero.update(input);
-    contain(hero, stage.localBounds);
-    if (state === "inTown") {
-      inTown();
-      if (
-        hit(hero, border, false, false, "none", (s, u) =>
-          console.log(s, u, hero.vX)
-        ) &&
-        Math.abs(hero.vX) < 0.1
-      ) {
-        state === "inTheWoods";
-        setup();
-      }
-    }
-    if (state === "inTheWoods") {
-      inTheWoods();
-      if (hit(hero, border) && hero.vX === 0) {
-        state === "inTown";
-        setup();
-      }
-    }
-    ++updateCycles;
+function drawGrid(graphics, input, fillStyle) {
+  graphics.clear();
+  graphics.beginTextureFill(fillStyle);
+  for (let i = 0; i < input.length; i++) {
+    let { rect } = input[i];
+    graphics.drawShape(rect);
   }
-  function inTheWoods() {
-    enemies.forEach((ea) => ea.act());
-    /* const hitBoxCollision = */
-    contain(enemyGrp, stage.localBounds);
+}
 
-    let heroHit = hit(hero, enemies, false, false, null, (str, obj) => {
-      if (hero.state === "attack") {
-        //   hero.proxy.fillStyle = "rgba(0,200,0, 50%)";
-        //   obj.proxy.fillStyle = "rgba(200,0,0,50%)";
-        obj.hp -= 2;
-        obj.state = "aggro";
-        obj.target = hero;
-        obj.aggro(hero);
-        //   wait(1250).then(() => {
-        //     hero.proxy.fillStyle = "none";
-        //     obj.proxy.fillStyle = "none";
-        //   });
-        //   // obj.hp -= 2;sss
-        //   // console.log(obj);
-      }
-    });
+function drawHitBox(graphics, input, fillStyle) {
+  graphics.clear();
+  graphics.beginTextureFill(fillStyle);
+  graphics.drawShape(input);
+}
 
-    enemies = enemies.filter((enemy) => {
-      if (enemy.hp < 1) {
-        remove(enemy);
-        return false;
-      }
-      return true;
-    });
-    arrows = arrows.filter((arrow) => {
-      arrow.x += arrow.vx;
-      arrow.y += arrow.vy;
-      // if (arrow.falling && arrow.y <= arrow.dropHeight) {
-      //   arrow.vy += 1;
-      //   arrow.x += arrow.vx;
-      //   arrow.y += arrow.vy;
-      // }
-      if (!arrow.inFlight) {
-        arrow.vx *= arrow.friction;
-        arrow.vy *= arrow.friction;
-      }
+PIXI.Loader.shared
+  .add([
+    "src/assets/Link.json",
+    "src/assets/sprites.json",
+    "src/assets/numbers.json",
+    "src/assets/rpgItems_42.png",
+  ])
+  .load(setup);
+let spriteSheet;
+function setup() {
+  console.log(PIXI.Loader.shared.resources);
+  spriteSheet =
+    PIXI.Loader.shared.resources["src/assets/sprites.json"].spritesheet;
+  bg = new PIXI.Sprite(
+    spriteSheet.textures["bg_town"],
+    spriteSheet.textures["bg_outdoors"]
+  );
+  bg.x = -150; //bg_town
 
-      if (arrow.inFlight) {
-        let didhit = hit(arrow, enemies, true, true, null, (str, obj) => {
-          obj.hp -= 1;
-          arrow.inFlight = false;
-        });
-      }
-
-      let collision = outsideBounds(arrow, stage.localBounds);
-
-      if (collision) {
-        // message.content = "The arrow hit the " + collision;
-        remove(arrow);
-        return false;
-      }
-      return true;
-    });
-  }
-  // render(stage, canvas);
-  runGame();
-  function runGame(timestamp) {
-    if (!timestamp) timestamp = 0;
-    let elapsed = timestamp - previousTime;
-    totalElapsed += elapsed;
-    // console.log(1);
-    while (totalElapsed >= frameInterval) {
-      update();
-      totalElapsed -= frameInterval;
-    }
-
-    render(stage, canvas);
-    ++framesDrawn;
-
-    previousTime = timestamp;
-    requestAnimationFrame(runGame);
+  if (hideBG) bg.visible = false;
+  app.stage.addChild(bg);
+  app.stage.addChild(graphics);
+  const linksheet =
+    PIXI.Loader.shared.resources["src/assets/Link.json"].spritesheet;
+  hero = new PIXI.AnimatedSprite(linksheet.animations["standDown"]);
+  hero.setTransform(200, 80, 0, 0, 0, 0, 0, hero.width / 2, hero.height / 2);
+  Object.assign(hero, {
+    animationSpeed: 0.4,
+    vx: 0,
+    vy: 0,
+    gid: undefined,
+    facing: "Down",
+  });
+  hero.animations = linksheet.animations;
+  // hero.hitArea = new PIXI.Rectangle(hero.x - 10, hero.y - 10, 20, 25);
+  app.stage.addChild(hero);
+  if (showNums) {
+    app.stage.addChild(grids);
   }
 
-  const plants = [];
-  let shouldGrow = true;
+  input.keys = {
+    left: new Key("KeyA"),
+    up: new Key("KeyW"),
+    right: new Key("KeyD"),
+    down: new Key("KeyS"),
+  };
 
-  setInterval(() => {
-    console.log(plants);
-  }, 5000);
-  function inTown() {
-    if (shouldGrow && plants.length < maxPlants)
-      Math.random() < 0.8 ? addNewCrop(plants) : null;
-    plants.forEach((plant) => {
-      plant.showFrame(plant._currentFrame);
-      if (!shouldGrow) return;
-      if (Math.random() < 0.8) advanceCrop(plant);
+  applyHandlers(
+    [input.keys.left, input.keys.up, input.keys.right, input.keys.down],
+    hero
+  );
+  // console.log(hero);
+  const vKey = new Key("KeyV", () => console.log(hero));
+  const eKey = new Key(
+    "KeyE",
+    () => harvest(hero),
+    () => console.log(hero[`plant${hero.facing}`])
+  );
+  //   app.render();
 
-      function advanceCrop(crop) {
-        crop._currentFrame += 1;
-        crop.showFrame(crop._currentFrame);
-        shouldGrow = false;
-        wait(randomInt(4, 20) * 1000).then(() => (shouldGrow = true));
-      }
-    });
-    // setInterval(console.log(plants), 3000);
-    function addNewCrop(arr) {
-      if (!shouldGrow) return;
-      console.log(arr);
-      let cropType =
-          Math.random() < 0.7 ? "Starfruit" : Crop.types[randomInt(0, 2)],
-        cropFiles = assets.crops[cropType];
+  PIXI.BitmapFont.from("bitmapFont", bitmapStyle);
+  text = new PIXI.BitmapText("message", { fontName: "bitmapFont" });
+  let coin = new PIXI.Sprite(
+      PIXI.Loader.shared.resources["src/assets/rpgItems_42.png"].texture
+    ),
+    scoreContainer = new PIXI.Container();
+  scoreContainer.addChild(coin, text);
+  coin.x = text.width;
+  coin.y = 5;
 
-      console.log(arr);
-      const crop = new Crop(
-        cropFiles.growing.map((x) => x.frame),
-        Math.random() * garden.width,
-        Math.random() * garden.height
-      );
-      console.log(crop);
+  scoreContainer.x = 500;
 
-      garden.addChild(crop);
+  app.stage.addChild(scoreContainer);
 
-      crop.scale = 1;
-      crop.harvest = cropFiles.crop;
-      arr.push(crop);
+  state = farming;
 
-      shouldGrow = false;
-      wait(randomInt(4, 20) * 1000).then(() => (shouldGrow = true));
-    }
+  gameLoop();
+  // console.log(grids.children);
+}
+function gameLoop() {
+  let heroAdjacent = adjacentGids(hero);
+
+  if ("plant" in gridRefs[heroAdjacent.Left]) {
+    hero.plantLeft = gridRefs[heroAdjacent.Left];
+    hero.vx = Math.max(0, hero.vx);
+  } else {
+    hero.plantLeft = undefined;
   }
+  if ("plant" in gridRefs[heroAdjacent.Up]) {
+    hero.plantUp = gridRefs[heroAdjacent.Up];
+    hero.vy = Math.max(0, hero.vy);
+  } else {
+    hero.plantUp = undefined;
+  }
+  if ("plant" in gridRefs[heroAdjacent.Right]) {
+    hero.plantRight = gridRefs[heroAdjacent.Right];
+    hero.vx = Math.min(0, hero.vx);
+  } else {
+    hero.plantRight = undefined;
+  }
+  if ("plant" in gridRefs[heroAdjacent.Down]) {
+    hero.plantDown = gridRefs[heroAdjacent.Down];
+    hero.vy = Math.min(0, hero.vy);
+  } else {
+    hero.plantDown = undefined;
+  }
+  hero.x += hero.vx;
+  hero.y += hero.vy;
+
+  if (showGrid) {
+    const collidingSectors = gridRefs.filter(
+      (p) =>
+        p.rect.contains(hero.x, hero.y) || gridRefs.indexOf(p) === gridIndex //|| p.info.farm
+    );
+    // console.log(collidingSectors);
+    drawGrid(graphics, collidingSectors, { alpha: 0.7, color: "blue" });
+  }
+
+  // drawHitBox(graphics, hero.hitArea, { alpha: 0.7, color: "hotpink" });
+  state();
+  app.render();
+  requestAnimationFrame(gameLoop);
+}
+
+function play() {}
+
+let farmTiles = gridRefs.filter((v, i) => farmCondition(i)),
+  growingPlants = [],
+  time;
+
+function harvest(hero) {
+  if (!farmCondition(hero.gid)) return;
+
+  hero.textures = hero.animations[`pickup${hero.facing}`];
+  hero.loop = false;
+  hero.onComplete = () => {
+    hero.loop = true;
+    hero.onComplete = undefined;
+  };
+  if (!hero.playing) hero.play();
+
+  let target = hero[`plant${hero.facing}`];
+
+  if (target) {
+    let { type, sprite } = target.plant;
+    score += scoring[type];
+    console.log(sprite);
+    sprite.texture = spriteSheet.textures[`${type}_crop`];
+    growingPlants.splice(growingPlants.indexOf(sprite), 1);
+    delete target.plant;
+
+    let interval = setInterval(() => {
+      sprite.visible = !sprite.visible;
+    }, 100);
+
+    wait(320).then(() => {
+      sprite.destroy();
+      clearInterval(interval);
+    });
+  }
+}
+
+function makeCropSprite() {
+  let key, tile;
+
+  do {
+    key = randomInt(0, farmTiles.length - 1);
+    tile = farmTiles[key];
+  } while ("plant" in tile);
+
+  const type = ["Grapes", "Melon", "Starfruit"][randomInt(0, 2)];
+  const stage = 1;
+
+  const ref = `${type}_growing_0${stage}`;
+
+  let { x, y } = tile.rect,
+    sprite = new PIXI.Sprite(spriteSheet.textures[ref]);
+  Object.assign(sprite, { x, y });
+  tile.plant = { type, stage, sprite };
+  growingPlants.push(tile.plant);
+  app.stage.addChild(sprite);
+}
+
+function grow(plant) {
+  if (plant.stage > 4) return;
+  plant.stage++;
+  let ref = `${plant.type}_growing_0${plant.stage}`;
+  plant.sprite.texture = spriteSheet.textures[ref];
+}
+
+function farming() {
+  if (!score) score = 0;
+  text.text = score;
+  if (!time) time = 0;
+  if (performance.now() - time < 1000) return;
+  growingPlants.forEach((p) => grow(p));
+  time = performance.now();
+  if (growingPlants.length < 28 && Math.random() < 0.3) makeCropSprite();
 }
