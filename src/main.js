@@ -11,7 +11,11 @@ import {
   wait,
 } from "./util";
 
-const app = new PIXI.Application({ width: 640, height: 480 });
+const app = new PIXI.Application({
+  width: 640,
+  height: 480,
+  backgroundColor: 0xffffff,
+});
 
 document.body.insertBefore(
   app.view,
@@ -23,11 +27,15 @@ window.addEventListener("resize", function (evt) {
 });
 
 let showGrid = false,
-  showNums = false;
+  showNums = false,
+  hideBG = false;
 
 let hero,
   bg,
   state,
+  score,
+  text,
+  scoring = { Grapes: 1, Melon: 3, Starfruit: 5 },
   input = {},
   grid = new DisplayGrid(),
   graphics = new PIXI.Graphics().lineStyle({ width: 1, color: "purple" }),
@@ -45,7 +53,14 @@ let hero,
     align: "center",
     dropShadow: false,
     // dropShadowColor: "#000000", // dropShadowBlur: 4, // dropShadowAngle: Math.PI / 6, // dropShadowDistance: 6,
-  };
+  },
+  bitmapStyle = new PIXI.TextStyle({
+    fontFamily: '"Courier New", Courier, monospace',
+    fontSize: 22,
+    fontWeight: "bold",
+    stroke: "white",
+    strokeThickness: 3,
+  });
 let grids;
 
 if (showNums) {
@@ -90,7 +105,7 @@ PIXI.Loader.shared
   .add([
     "src/assets/Link.json",
     "src/assets/sprites.json",
-    "src/assets/numebrs.jpg",
+    "src/assets/numbers.json",
     "src/assets/rpgItems_42.png",
   ])
   .load(setup);
@@ -105,7 +120,7 @@ function setup() {
   );
   bg.x = -150; //bg_town
 
-  // bg.visible = false;
+  if (hideBG) bg.visible = false;
   app.stage.addChild(bg);
   app.stage.addChild(graphics);
   const linksheet =
@@ -145,6 +160,20 @@ function setup() {
     () => console.log(hero[`plant${hero.facing}`])
   );
   //   app.render();
+
+  PIXI.BitmapFont.from("bitmapFont", bitmapStyle);
+  text = new PIXI.BitmapText("message", { fontName: "bitmapFont" });
+  let coin = new PIXI.Sprite(
+      PIXI.Loader.shared.resources["src/assets/rpgItems_42.png"].texture
+    ),
+    scoreContainer = new PIXI.Container();
+  scoreContainer.addChild(coin, text);
+  coin.x = text.width;
+  coin.y = 5;
+
+  scoreContainer.x = 500;
+
+  app.stage.addChild(scoreContainer);
 
   state = farming;
 
@@ -214,18 +243,20 @@ function harvest(hero) {
   if (!hero.playing) hero.play();
 
   let target = hero[`plant${hero.facing}`];
+
   if (target) {
     let { type, sprite } = target.plant;
+    score += scoring[type];
     console.log(sprite);
     sprite.texture = spriteSheet.textures[`${type}_crop`];
-    growingPlants.remove(sprite);
+    growingPlants.splice(growingPlants.indexOf(sprite), 1);
     delete target.plant;
 
     let interval = setInterval(() => {
       sprite.visible = !sprite.visible;
     }, 100);
 
-    wait(1000).then(() => {
+    wait(320).then(() => {
       sprite.destroy();
       clearInterval(interval);
     });
@@ -261,6 +292,8 @@ function grow(plant) {
 }
 
 function farming() {
+  if (!score) score = 0;
+  text.text = score;
   if (!time) time = 0;
   if (performance.now() - time < 1000) return;
   growingPlants.forEach((p) => grow(p));
