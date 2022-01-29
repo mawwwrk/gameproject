@@ -1,5 +1,3 @@
-import { farmCondition } from ".";
-
 export class Key {
   constructor(
     code,
@@ -245,16 +243,4 @@ export function initControl(targetObj = undefined) {
         break;
     }
   });
-}
-
-export function harvest(hero) {
-  if (!farmCondition(hero.gid)) return;
-
-  hero.textures = hero.animations[`pickup${hero.facing}`];
-  hero.loop = false;
-  hero.onComplete = () => {
-    hero.loop = true;
-    hero.onComplete = undefined;
-  };
-  if (!hero.playing) hero.play();
 }

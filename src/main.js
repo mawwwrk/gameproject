@@ -1,5 +1,4 @@
 import { DisplayGrid } from "./classes";
-import { growCrop } from "./components";
 import * as PIXI from "./imports";
 import { scaleToWindow } from "./imports";
 import "./style.css";
@@ -7,8 +6,9 @@ import {
   adjacentGids,
   applyHandlers,
   farmCondition,
-  harvest,
   Key,
+  randomInt,
+  wait,
 } from "./util";
 
 const app = new PIXI.Application({ width: 640, height: 480 });
@@ -87,7 +87,12 @@ function drawHitBox(graphics, input, fillStyle) {
 }
 
 PIXI.Loader.shared
-  .add(["src/assets/Link.json", "src/assets/sprites.json"])
+  .add([
+    "src/assets/Link.json",
+    "src/assets/sprites.json",
+    "src/assets/numebrs.jpg",
+    "src/assets/rpgItems_42.png",
+  ])
   .load(setup);
 let spriteSheet;
 function setup() {
@@ -106,7 +111,7 @@ function setup() {
   const linksheet =
     PIXI.Loader.shared.resources["src/assets/Link.json"].spritesheet;
   hero = new PIXI.AnimatedSprite(linksheet.animations["standDown"]);
-  hero.setTransform(30, 30, 0, 0, 0, 0, 0, hero.width / 2, hero.height / 2);
+  hero.setTransform(200, 80, 0, 0, 0, 0, 0, hero.width / 2, hero.height / 2);
   Object.assign(hero, {
     animationSpeed: 0.4,
     vx: 0,
@@ -134,7 +139,11 @@ function setup() {
   );
   // console.log(hero);
   const vKey = new Key("KeyV", () => console.log(hero));
-  const eKey = new Key("KeyE", () => harvest(hero));
+  const eKey = new Key(
+    "KeyE",
+    () => harvest(hero),
+    () => console.log(hero[`plant${hero.facing}`])
+  );
   //   app.render();
 
   state = farming;
@@ -145,10 +154,30 @@ function setup() {
 function gameLoop() {
   let heroAdjacent = adjacentGids(hero);
 
-  if ("plant" in gridRefs[heroAdjacent.Up]) hero.vy = Math.max(0, hero.vy);
-  if ("plant" in gridRefs[heroAdjacent.Down]) hero.vy = Math.min(0, hero.vy);
-  if ("plant" in gridRefs[heroAdjacent.Left]) hero.vx = Math.max(0, hero.vx);
-  if ("plant" in gridRefs[heroAdjacent.Right]) hero.vx = Math.min(0, hero.vx);
+  if ("plant" in gridRefs[heroAdjacent.Left]) {
+    hero.plantLeft = gridRefs[heroAdjacent.Left];
+    hero.vx = Math.max(0, hero.vx);
+  } else {
+    hero.plantLeft = undefined;
+  }
+  if ("plant" in gridRefs[heroAdjacent.Up]) {
+    hero.plantUp = gridRefs[heroAdjacent.Up];
+    hero.vy = Math.max(0, hero.vy);
+  } else {
+    hero.plantUp = undefined;
+  }
+  if ("plant" in gridRefs[heroAdjacent.Right]) {
+    hero.plantRight = gridRefs[heroAdjacent.Right];
+    hero.vx = Math.min(0, hero.vx);
+  } else {
+    hero.plantRight = undefined;
+  }
+  if ("plant" in gridRefs[heroAdjacent.Down]) {
+    hero.plantDown = gridRefs[heroAdjacent.Down];
+    hero.vy = Math.min(0, hero.vy);
+  } else {
+    hero.plantDown = undefined;
+  }
   hero.x += hero.vx;
   hero.y += hero.vy;
 
@@ -173,26 +202,68 @@ let farmTiles = gridRefs.filter((v, i) => farmCondition(i)),
   growingPlants = [],
   time;
 
-function makeCropSprite() {
-  console.log("ms");
-  let plantDetails = growCrop(farmTiles),
-    selectedFarmTile = farmTiles[plantDetails.key];
-  let plantSprite = new PIXI.Sprite(
-    spriteSheet.textures[plantDetails.textureRef]
-  );
-  plantSprite.scale = 5;
-  plantSprite.spriteSheet = spriteSheet.textures;
+function harvest(hero) {
+  if (!farmCondition(hero.gid)) return;
 
-  plantDetails.embed(plantSprite, spriteSheet);
-  selectedFarmTile.plant = plantSprite;
-  growingPlants.push(selectedFarmTile.plant);
-  app.stage.addChild(selectedFarmTile.plant);
+  hero.textures = hero.animations[`pickup${hero.facing}`];
+  hero.loop = false;
+  hero.onComplete = () => {
+    hero.loop = true;
+    hero.onComplete = undefined;
+  };
+  if (!hero.playing) hero.play();
+
+  let target = hero[`plant${hero.facing}`];
+  if (target) {
+    let { type, sprite } = target.plant;
+    console.log(sprite);
+    sprite.texture = spriteSheet.textures[`${type}_crop`];
+    growingPlants.remove(sprite);
+    delete target.plant;
+
+    let interval = setInterval(() => {
+      sprite.visible = !sprite.visible;
+    }, 100);
+
+    wait(1000).then(() => {
+      sprite.destroy();
+      clearInterval(interval);
+    });
+  }
+}
+
+function makeCropSprite() {
+  let key, tile;
+
+  do {
+    key = randomInt(0, farmTiles.length - 1);
+    tile = farmTiles[key];
+  } while ("plant" in tile);
+
+  const type = ["Grapes", "Melon", "Starfruit"][randomInt(0, 2)];
+  const stage = 1;
+
+  const ref = `${type}_growing_0${stage}`;
+
+  let { x, y } = tile.rect,
+    sprite = new PIXI.Sprite(spriteSheet.textures[ref]);
+  Object.assign(sprite, { x, y });
+  tile.plant = { type, stage, sprite };
+  growingPlants.push(tile.plant);
+  app.stage.addChild(sprite);
+}
+
+function grow(plant) {
+  if (plant.stage > 4) return;
+  plant.stage++;
+  let ref = `${plant.type}_growing_0${plant.stage}`;
+  plant.sprite.texture = spriteSheet.textures[ref];
 }
 
 function farming() {
   if (!time) time = 0;
   if (performance.now() - time < 1000) return;
-  growingPlants.forEach((p) => p.grow(p));
+  growingPlants.forEach((p) => grow(p));
   time = performance.now();
-  if (growingPlants.length < 8 && Math.random() < 0.3) makeCropSprite();
+  if (growingPlants.length < 28 && Math.random() < 0.3) makeCropSprite();
 }
