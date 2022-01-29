@@ -1,3 +1,5 @@
+import { farmCondition } from ".";
+
 export class Key {
   constructor(
     code,
@@ -43,13 +45,16 @@ export class Key {
   };
 }
 
+const velocity = 1.3;
+
 export function applyHandlers([left, up, right, down], hero) {
   left.press = () => {
     //Play the sprite’s `walkLeft` animation
     //sequence and set the sprite’s velocity
+    hero.facing = "Left";
     hero.textures = hero.animations["runLeft"];
     if (!hero.playing) hero.play();
-    hero.vx = -5;
+    hero.vx = -velocity;
     hero.vy = 0;
   }; //Left arrow key `release` method
   left.release = () => {
@@ -64,9 +69,10 @@ export function applyHandlers([left, up, right, down], hero) {
     } //The rest of the arrow keys follow the same format //Up
   };
   up.press = () => {
+    hero.facing = "Up";
     hero.textures = hero.animations["runUp"];
     if (!hero.playing) hero.play();
-    hero.vy = -5;
+    hero.vy = -velocity;
     hero.vx = 0;
   };
   up.release = () => {
@@ -77,9 +83,10 @@ export function applyHandlers([left, up, right, down], hero) {
     }
   }; //Right
   right.press = () => {
+    hero.facing = "Right";
     hero.textures = hero.animations["runRight"];
     if (!hero.playing) hero.play();
-    hero.vx = 5;
+    hero.vx = velocity;
     hero.vy = 0;
   };
   right.release = () => {
@@ -90,9 +97,10 @@ export function applyHandlers([left, up, right, down], hero) {
     }
   }; //Down
   down.press = () => {
+    hero.facing = "Down";
     hero.textures = hero.animations["runDown"];
     if (!hero.playing) hero.play();
-    hero.vy = 5;
+    hero.vy = velocity;
     hero.vx = 0;
   };
   down.release = () => {
@@ -237,4 +245,16 @@ export function initControl(targetObj = undefined) {
         break;
     }
   });
+}
+
+export function harvest(hero) {
+  if (!farmCondition(hero.gid)) return;
+
+  hero.textures = hero.animations[`pickup${hero.facing}`];
+  hero.loop = false;
+  hero.onComplete = () => {
+    hero.loop = true;
+    hero.onComplete = undefined;
+  };
+  if (!hero.playing) hero.play();
 }
