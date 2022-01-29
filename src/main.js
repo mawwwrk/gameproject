@@ -10,6 +10,7 @@ import {
   randomInt,
   wait,
 } from "./util";
+import { drawGridConditional } from "./util/graphicsDraw";
 
 const app = new PIXI.Application({
   width: 640,
@@ -39,7 +40,7 @@ let hero,
   input = {},
   grid = new DisplayGrid(),
   graphics = new PIXI.Graphics().lineStyle({ width: 1, color: "purple" }),
-  graohicsFillOptions = {
+  graphicsFillOptions = {
     texture: PIXI.Texture.WHITE,
     color: 0xffffff,
     alpha: 1,
@@ -169,6 +170,13 @@ function gameLoop() {
     );
     // console.log(collidingSectors);
     drawGrid(graphics, collidingSectors, { alpha: 0.7, color: "blue" });
+
+    drawGridConditional(
+      graphics,
+      gridRefs.filter((x) => "plant" in x),
+      (x) => x,
+      graphicsFillOptions
+    );
   }
 
   // drawHitBox(graphics, hero.hitArea, { alpha: 0.7, color: "hotpink" });
